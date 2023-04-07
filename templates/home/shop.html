@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Shop{% endblock title %}
+{% block css %}<link href="{% static "css/shop.css"%}" rel="stylesheet">{% endblock css %}
+{% block shopPage %}active{% endblock shopPage %}
+{% block body %}
+<div class="container-fluid p-4 my-5">
+  <!-- start -->
+  <div class="row ">
+    <div class="col-sm-6 col-md-4" style="width: 15rem;">
+      <img src="{{book.book_image.url}} "
+        class="prodimg img-fluid img-responsive" ">
+    </div>
+    <div class="col-sm-6 col-md-8">
+      <h3 class="text-white">
+        {{book.book_name}} - {{book.auther}}</h3>
+
+      <dl class="row">
+        <dt class="col-sm-3">Auther :</dt>
+        <dd class="col-sm-9">{{book.auther}}</dd>
+
+        <dt class="col-sm-3">Publication :</dt>
+        <dd class="col-sm-9">{{book.publication}}</dd>
+
+        <dt class="col-sm-3">No of pages :</dt>
+        <dd class="col-sm-9"> {{book.no_of_pages}}</dd>
+
+        <dt class="col-sm-3">Published_year :</dt>
+        <dd class="col-sm-9"> {{book.published_year}}</dd>
+
+        <dt class="col-sm-3">Qulity :</dt>
+        <dd class="col-sm-9">{{book.condition}}</dd>
+
+        <dt class="col-sm-3">Price:</dt>
+        <dd class="col-sm-9" style="font-size: 24px;"><b>₹{{book.price}}/-.</b></dd>
+        <dd class="col-sm-9" style="font-size: 24px;"><b><del>₹{{book.price}}/-.</b></dd>
+
+
+      </dl>
+      <button id="btndes" class="btn btn-outline-info ">Add to cart</button>
+      <button id="btnorder" class="btn btn-outline-success float-left mx-2">Order now</button>
+    </div>
+  </div>
+ 
+
+
+  <!-- Descreption -->
+
+
+
+  <div id="dec_container" class="container-flud">
+    <div class="row">
+      <div class="col-md-4">
+        <p class="mt-3">
+        <h3 class="pb-2 text-warning">Descreption :</h3>
+
+        <dl class="row">
+          <dt class="col-sm-4">Auther :</dt>
+        <dd class="col-sm-8">{{book.auther}}</dd>
+
+        <dt class="col-sm-4">Publication :</dt>
+        <dd class="col-sm-8">{{book.publication}}</dd>
+
+        <dt class="col-sm-4">No of pages :</dt>
+        <dd class="col-sm-8"> {{book.no_of_pages}}</dd>
+
+        <dt class="col-sm-4">Published_year :</dt>
+        <dd class="col-sm-8"> {{book.published_year}}</dd>
+
+        <dt class="col-sm-4">Qulity :</dt>
+        <dd class="col-sm-8">{{book.condition}}</dd>
+
+        <dt class="col-sm-4">Price:</dt>
+        <dd class="col-sm-8" style="font-size: 24px;"><b>₹{{book.price}}/-.</b></dd>
+        </dl>
+
+        </p>
+
+      </div>
+      <div class="col-md-8 mt-2">
+        <h3 class="text-warning mt-2">Book Summery :</h3>
+        <p id="prod_descreption" class="text-muted mt-4 text-justify">
+          Steve Jobs: The Exclusive Biography by Walter Isaacson
+          From bestselling author Walter Isaacson comes the landmark biography of Apple co-founder Steve Jobs. In Steve
+          Jobs: The Exclusive Biography, Isaacson provides an extraordinary account of Jobs' professional and personal
+          life.
+
+          Drawn from three years of exclusive and unprecedented interviews Isaacson has conducted with Jobs as well as
+          extensive interviews with Jobs' family members, key colleagues from Apple and its competitors, Steve Jobs: The
+          Exclusive Biography is the definitive portrait of the greatest innovator of his generation.
+
+        </p>
+      </div>
+    </div>
+    
+    <br><h2>Customer reviews</h2><hr><br>
+
+    {% if comments %}
+        {% for comment in comments %}
+            <pre id="commentator_name" >{{comment.name|title}} </pre><pre id="cmt_dnt">({{comment.created}})</pre>
+            <div class="cb">{{comment.body|linebreaks}}</div>
+        {% endfor %}
+        {% else %}
+        <p>There are no comments yet!!!</p>
+    {% endif %}
+    <br><br>
+
+
+
+    {% if csubmit %}
+    <p>Your comment added successfully!!!</p><br>
+    <form method="POST">
+        {{form.as_p}}
+        {% csrf_token %}
+        <input type="submit" class="btn btn-success" name="" value="Comment">
+    </form>
+    {% else %}
+    <form method="POST">
+        {{form.as_p}}
+        {% csrf_token %}
+        <input type="submit" class="btn btn-success" name="" value="Post review">
+    </form>
+    {% endif %}
+
+    <h4 class="mb-2">Related items:</h4>
+    <div class="row row-cols-12 row-cols-sm-12 row-cols-md-12 py-2 my-2">
+      {% for book in book_list %}
+      <div class="col">
+        <div class="card bg-dark text-light shadow-lg rounded m-1 " style="width: 12rem;">
+          <img src="{{book.book_image.url}}" class="card-img-top img-responsive" style="width:100%;height:290px;" alt="...">
+          <div class="card-body">
+            <p class="card-text text-truncate">{{book.book_name}}</p>
+            <h5 class="card-text "><strong>₹{{book.price}}/-</strong></h5>
+            <a href="shop/{{book.id}}" class="btn btn-success container my-2">Buy Now</a>
+          </div>
+        </div>
+      </div>             
+      {% endfor %}
+
+    <script>
+      $(document).ready(function ($) {
+        $("#dec_container").hide()
+        $("#btndes").click(function (event) {
+          /* Act on the event */
+          $("#dec_container").toggle(1000)
+
+        });
+
+      });  
+    </script>
+  </div>
+</div>
+
+
+{% endblock body %}

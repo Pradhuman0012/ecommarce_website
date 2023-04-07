@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Storedata{% endblock title %}
+{% block Storedata %}active{% endblock Storedata%}
+{% block body %}
+<br/>
+<br/>
+<br/>
+
+<h1><center>Storedata</h1>
+<br/>
+
+{% if submitted %}
+<div class="alert alert-warning alert-dismissible fade show fixed container" role="alert">
+  Your Book store in database sucessfully done!!!
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% else %}
+  <div class="container">
+  <form method="post" action="" enctype="multipart/form-data"> 
+    {% csrf_token %}
+    {{ form.as_p}}
+      <button type="submit" class="btn btn-success center">Submit</button>
+  </form>
+</div>
+
+
+{% endif %}
+
+{% endblock body %}
