@@ -1,114 +1,113 @@
 {% extends 'base.html' %}
-{% block title %}About{% endblock title %}
+{% load static %}
+{% block title %}About Us{% endblock title %}
 {% block aboutPage %}active{% endblock aboutPage %}
-{% block body %}  
 
-<div class="container my-5">
-  <br/>
-  <br/>
+{% block styleblock %}
+.about-container {
+  max-width: 900px;
+}
 
-  <h1 class="display-2 text-muted text-center ">About</h1>
+.about-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.about-title {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.about-text {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--text-muted);
+}
+
+.about-highlight {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.about-logo-inline {
+  width: 48px;
+  opacity: 0.8;
+}
+
+.about-divider {
+  border-left: 3px solid var(--accent);
+  padding-left: 1.5rem;
+  margin: 3rem 0;
+}
+
+.about-footer {
+  margin-top: 5rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+{% endblock styleblock %}
+
+{% block body %}
+<div class="container my-5 pt-5 about-container">
+
+  <!-- HEADER -->
+  <!-- HEADER -->
+<div class="mb-5">
+
+  <div class="about-label mb-3">About Us</div>
+
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <img
+      src="{% static 'images/logo.png' %}"
+      alt="MTC"
+      class="about-logo-inline"
+    />
+
+    <h1 class="about-title mb-0">
+      Mahakaal Themes Cafe
+    </h1>
   </div>
-   <div class="container my-5">
-      <div class="row p-4 pb-0 pe-lg-0 pt-lg-5 align-items-center rounded-3 border shadow-lg">
-        <div class="col-lg-7 p-3 p-lg-5 pt-lg-3">
-          <h1 class="display-4 fw-bold lh-1">the Wonderful World of Books and more!</h1>
-          <p class="lead">
-            If you’re looking for great value second hand books, then World of Books is the place for you.
-            
-            As you may already know, we aren’t like other online book stores. For starters, we don’t believe that books should only be read once, or have a single owner. Literature should endure and be continually recycled, which is why we help millions of used books find new homes every year.
-            
-            World of Books also buys directly from charities, taking the titles they don’t want or haven’t got space for. So as well as preventing the destruction of perfectly good books, our customers are helping to support good causes too.</p>
-          <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
-            <button type="button" class="btn btn-primary btn-lg px-4 me-md-2 fw-bold">Primary</button>
-            <button type="button" class="btn btn-outline-secondary btn-lg px-4">Default</button>
-          </div>
-        </div>
-        <div class="col-lg-4 offset-lg-1 p-0 overflow-hidden shadow-lg">
-            <img class="rounded-lg-3" src="https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="" width="720">
-        </div>
-      </div>
-    </div>
-  
-  
-  <div class"container">
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-6 py-5 my-5">
-      <div class="col mx-1">
-        <div class="card p-2 text-dark m-2" style="width: 12rem;">
-          <img src="https://productimages.worldofbooks.com/1838854797.jpg" class="card-img-top" alt="...">
-          <div class="card-body">
-            <h5 class="card-title text-truncate">Madly, Deeply
-              by Alan Rickman</h5>
-            <p class="card-text">₹360/-</p>
-            <a href="#" class="btn btn-primary">Add to cart</a>
-          </div>
-        </div>
-      </div>
-      <div class="col mx-4">
-        <div class="card p-2 text-dark m-1" style="width: 12rem;">
-          <img src="https://productimages.worldofbooks.com/1398505293_thumbnail.jpg" class="card-img-top" alt="...">
-          <div class="card-body">
-            <p class="card-text text-truncate">And Away...by Bob Mortimer</p>
-            <h5 class="card-title">₹210</h5>
-            <a href="#" class="btn btn-primary">Add to cart</a>
-          </div>
-        </div>
-      </div>
-      <div class="col mx-4">
-        <div class="card p-2 text-dark m-1" style="width: 12rem;">
-          <img src="https://productimages.worldofbooks.com/0241491517.jpg" class="card-img-top" alt="...">
-          <div class="card-body">
-            <p class="card-text text-truncate">A Promised Land
-              by Barack Obama</p>
-            <h5 class="card-title">₹120</h5>
-            <a href="#" class="btn btn-primary">Add to cart</a>
-          </div>
-        </div>
-      </div>
-      <div class="col mx-4">
-        <div class="card p-2 text-dark m-1" style="width: 12rem;">
-          <img src="https://productimages.worldofbooks.com/1408703742.jpg" class="card-img-top" alt="...">
-          <div class="card-body">
-            <p class="card-text text-truncate">Steve Jobs
-              by Walter Isaacson</p>
-            <h5 class="card-title">₹100</h5>
-            <a href="#" class="btn btn-primary">Add to cart</a>
-          </div>
-        </div>
-      </div>
-      <div class="col mx-4">
-        <div class="card p-2 text-dark m-1" style="width: 12rem;">
-          <img src="https://productimages.worldofbooks.com/1408855658.jpg" class="card-img-top" alt="...">
-          <div class="card-body">
-            <p class="card-text text-truncate">Harry Potter Philosopher's Stone
-              by J.K. Rowling</p>
-            <h5 class="card-title">₹399</h5>
-            <a href="#" class="btn btn-primary">Add to cart</a>
-          </div>
-        </div>
-      </div>
-  
-    
-    </div>
+
+</div>
+
+  <!-- CONTENT -->
+  <div class="about-divider">
+
+    <p class="about-text mb-4">
+      Mahakaal Themes Cafe was not designed to impress.
+      It was designed to <span class="about-highlight">feel right</span>.
+    </p>
+
+    <p class="about-text mb-4">
+      We believe a café should offer more than a menu.
+      It should offer rhythm — a place where mornings begin gently,
+      afternoons slow down, and evenings feel unforced.
+    </p>
+
+    <p class="about-text mb-4">
+      Every cup we serve reflects patience.
+      Every corner of the café reflects intention.
+      Nothing here exists by accident.
+    </p>
+
+    <p class="about-text mb-0">
+      Come in for coffee.
+      Stay for the calm.
+    </p>
+
   </div>
-  <!-- 7 reasons -->
-  <div class="container col-xxl-8 my-5 py-5">
-    <div class="row flex-lg-row-reverse align-items-center g-5">
-      <div class="col-10 col-sm-8 col-lg-6">
-        <img src="/static/images/crousel5.jpeg" class="d-block mx-lg-auto img-fluid" alt="Bootstrap Themes" width="700"
-          height="500" loading="lazy">
-      </div>
-      <div class="col-lg-6">
-        <h1 class="display-5 fw-bold lh-1 mb-3 text-white ">7 Reasons to Buy Used Books</h1>
-        <p class="lead text-white ">As a used bookseller, we really do find that buying used books is the way to go. Our
-          seven reasons below are a great starting point for getting to know World of Books and realising how great a used
-          book can be.</p>
-        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-          <button type="button" action='/shop' class="btn btn-primary btn-lg px-4 me-md-2">Continue reading</button>
-          <button type="button" class="btn btn-outline-secondary btn-lg px-4">Check now</button>
-        </div>
-      </div>
+
+  <!-- FOOT -->
+  <div class="about-footer">
+    <div>Bhilwara, Rajasthan</div>
+    <div class="fw-semibold mt-1">
+      Mahakaal Themes Cafe
     </div>
   </div>
 
+</div>
 {% endblock body %}

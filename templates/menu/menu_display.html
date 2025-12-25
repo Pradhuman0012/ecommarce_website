@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Cafe Menu{% endblock %}
+
+{% block styleblock %}
+.menu-wrapper {
+  max-width: 1200px;
+}
+
+/* CATEGORY */
+.category-section {
+  margin-bottom: 3rem;
+}
+
+.category-title {
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 8px;
+}
+
+/* ITEM CARD */
+.menu-item-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform .2s ease;
+}
+
+.menu-item-card:hover {
+  transform: translateY(-4px);
+}
+
+/* IMAGE */
+.menu-item-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* BODY */
+.menu-item-body {
+  padding: 14px;
+}
+
+.menu-item-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.menu-item-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* PRICE */
+.price-pill {
+  background: var(--bg-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+{% endblock %}
+
+{% block body %}
+<div class="container py-5 menu-wrapper">
+
+  <!-- HEADER -->
+  <div class="text-center mb-5">
+    <h1 class="fw-bold">Mahakaal Themes Cafe</h1>
+    <p class="text-muted">Fresh coffee • Cozy vibes</p>
+  </div>
+
+  {% for category in categories %}
+  <div class="category-section">
+
+    <h3 class="category-title mb-4">
+      {{ category.name }}
+    </h3>
+
+    <div class="row g-4">
+
+      {% for item in category.items.all %}
+      <div class="col-sm-6 col-lg-4">
+
+        <div class="menu-item-card h-100">
+
+          {% if item.image %}
+            <img
+              src="{{ item.image.url }}"
+              class="menu-item-image"
+              alt="{{ item.name }}"
+            >
+          {% else %}
+            <div style="height:180px;background:#e5e7eb;"></div>
+          {% endif %}
+
+          <div class="menu-item-body">
+
+            <div class="menu-item-title mb-1">
+              {{ item.name }}
+            </div>
+
+            {% if item.description %}
+            <div class="menu-item-desc">
+              {{ item.description }}
+            </div>
+            {% endif %}
+
+            <div class="d-flex flex-wrap gap-2">
+              {% for s in item.sizes.all %}
+                <span class="price-pill">
+                  {{ s.get_size_display }} ₹{{ s.price }}
+                </span>
+              {% endfor %}
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

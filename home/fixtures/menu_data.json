@@ -1,0 +1,101 @@
+{
+  "categories": [
+    { "name": "Hot Coffee", "is_active": true },
+    { "name": "Cold Coffee", "is_active": true },
+    { "name": "Tea", "is_active": true },
+    { "name": "Shakes", "is_active": true },
+    { "name": "Snacks", "is_active": true }
+  ],
+
+  "items": [
+    {
+      "name": "Hot Flat White",
+      "category": "Hot Coffee",
+      "sizes": { "S": 80, "M": 100, "L": 120 }
+    },
+    {
+      "name": "Cappuccino",
+      "category": "Hot Coffee",
+      "sizes": { "S": 90, "M": 110, "L": 130 }
+    },
+    {
+      "name": "Cafe Latte",
+      "category": "Hot Coffee",
+      "sizes": { "S": 90, "M": 110, "L": 130 }
+    },
+    {
+      "name": "Americano",
+      "category": "Hot Coffee",
+      "sizes": { "S": 70, "M": 90, "L": 110 }
+    },
+
+    {
+      "name": "Cold Coffee",
+      "category": "Cold Coffee",
+      "sizes": { "S": 100, "M": 130, "L": 160 }
+    },
+    {
+      "name": "Cold Coffee with Ice Cream",
+      "category": "Cold Coffee",
+      "sizes": { "S": 130, "M": 160, "L": 190 }
+    },
+    {
+      "name": "Chocolate Cold Coffee",
+      "category": "Cold Coffee",
+      "sizes": { "S": 120, "M": 150, "L": 180 }
+    },
+
+    {
+      "name": "Masala Tea",
+      "category": "Tea",
+      "sizes": { "S": 20, "M": 30, "L": 40 }
+    },
+    {
+      "name": "Ginger Tea",
+      "category": "Tea",
+      "sizes": { "S": 20, "M": 30, "L": 40 }
+    },
+    {
+      "name": "Green Tea",
+      "category": "Tea",
+      "sizes": { "S": 30, "M": 40, "L": 50 }
+    },
+
+    {
+      "name": "Chocolate Shake",
+      "category": "Shakes",
+      "sizes": { "S": 120, "M": 150, "L": 180 }
+    },
+    {
+      "name": "Strawberry Shake",
+      "category": "Shakes",
+      "sizes": { "S": 120, "M": 150, "L": 180 }
+    },
+    {
+      "name": "Oreo Shake",
+      "category": "Shakes",
+      "sizes": { "S": 140, "M": 170, "L": 200 }
+    },
+
+    {
+      "name": "Veg Sandwich",
+      "category": "Snacks",
+      "sizes": { "S": 70, "M": 90, "L": 110 }
+    },
+    {
+      "name": "Grilled Sandwich",
+      "category": "Snacks",
+      "sizes": { "S": 90, "M": 110, "L": 130 }
+    },
+    {
+      "name": "French Fries",
+      "category": "Snacks",
+      "sizes": { "S": 70, "M": 90, "L": 110 }
+    },
+    {
+      "name": "Cheese Maggi",
+      "category": "Snacks",
+      "sizes": { "S": 80, "M": 100, "L": 120 }
+    }
+  ]
+}

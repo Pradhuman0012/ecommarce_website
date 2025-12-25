@@ -18,23 +18,22 @@
 
 </p><br>
 
-{% most_reviewed_book as most_reviewed %}
 
 <div class"container-fluid">
   <div class="row row-cols-12 row-cols-sm-12 row-cols-md-12 py-2 my-2">
     
-    {% for book in most_reviewed %}
+    <!-- {% for book in most_reviewed %} -->
     <div class="col">
       <div class="card bg-dark text-light shadow-lg rounded m-1 " style="width: 12rem;">
-        <img src="{{book.book_image.url}}" class="card-img-top img-responsive" style="width:100%;height:290px;" alt="...">
+        <img src="#" class="card-img-top img-responsive" style="width:100%;height:290px;" alt="...">
         <div class="card-body">
-          <p class="card-text text-truncate">{{book.book_name}}</p>
-          <h5 class="card-text "><strong>₹{{book.price}}/-</strong></h5>
-          <a href="shop/{{book.id}}" class="btn btn-success container my-2">Buy Now</a>
+          <p class="card-text text-truncate">book.book_name</p>
+          <h5 class="card-text "><strong>₹100/-</strong></h5>
+          <a href="#" class="btn btn-success container my-2">Buy Now</a>
         </div>
       </div>
     </div>
-    {% endfor %}
+    <!-- {% endfor %} -->
   
   </div>
 </div>

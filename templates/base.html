@@ -1,153 +1,447 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-  <title>{% block title %}{% endblock title %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-   {% block css %}{% endblock css %} 
-  <style>
-    
-    {
-      % block style %
-    }
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-      {
-      % endblock style %
-    }
+  <title>{% block title %}{% endblock title %}</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  {% block css %}{% endblock css %}
+
+  <style>
+      
+/* DEFAULT = LIGHT MODE */
+:root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-soft: #f1f5f9;
+
+  --text-main: #020617;
+  --text-muted: #475569;
+
+  --accent: #16a34a;
+  --border-soft: #e2e8f0;
+  --danger: #dc2626;
+}
+
+/* DARK MODE */
+[data-theme="dark"] {
+  --bg-main: #141414;
+  --bg-card: #1c1c1c;
+  --bg-soft: #232323;
+
+  --text-main: #f2f2f2;
+  --text-muted: #b5b5b5;
+
+  --accent: #7dd3a8;
+  --border-soft: #2f2f2f;
+  --danger: #f87171;
+}
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+}
+/* THEME AWARE TABLE */
+.theme-table {
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.theme-table thead th {
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.theme-table tbody tr {
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.theme-table tbody tr:hover {
+  background: var(--bg-soft);
+}
+
+.theme-table td,
+.theme-table th {
+  border-color: var(--border-soft);
+}
+
+      /* GLOBAL FIXES */
+      html, body {
+        height: 100%;
+        background: var(--bg-main);
+        color: var(--text-main);
+      }
+      /* Cards */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-soft);
+        border-radius: 10px;
+      }
+
+      /* Forms */
+      .form-control {
+        background: var(--bg-soft);
+        color: var(--text-main);
+        border: 1px solid var(--border-soft);
+      }
+
+      .select2-search__field {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #ccc !important;
+      }
+
+      [data-theme="dark"] .select2-search__field {
+        background: #1f1f1f !important;
+        color: #ffffff !important;
+        border: 1px solid #444 !important;
+      }
+
+      /* Tables */
+      .table {
+        color: var(--text-main);
+      }
+
+      .table thead th {
+        color: var(--text-muted);
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .table tbody tr {
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .table tbody tr:hover {
+        background: rgba(255,255,255,0.03);
+      }
+
+      /* Buttons */
+      .btn-accent {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+      }
+
+      .btn-accent:hover {
+        background: var(--accent);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        border: none;
+      }
+
+      .footer-link {
+        color: var(--text-muted);
+      }
+      .footer-link:hover {
+        color: var(--accent);
+      }
+
+      /* Footer bottom strip */
+      .footer-bottom {
+        background: var(--bg-soft);
+        color: var(--text-muted);
+        border-top: 1px solid var(--border-soft);
+      }
+      
+      /* Select2 theme-safe + searchable */
+      .select2-container {
+        width: 100% !important;
+      }
+
+      .select2-selection--single {
+        background: var(--bg-soft) !important;
+        border: 1px solid var(--border-soft) !important;
+        height: 46px !important;
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      .select2-selection__rendered {
+        color: var(--text-main) !important;
+        padding-left: 12px !important;
+      }
+
+      .select2-selection__arrow {
+        height: 46px !important;
+      }
+
+      .select2-dropdown {
+        background: var(--bg-card) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--border-soft) !important;
+      }
+
+      .select2-search--dropdown {
+        padding: 8px;
+      }
+
+      .select2-search__field {
+        background: var(--bg-soft) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--border-soft) !important;
+        height: 38px;
+      }
+
+      .select2-results__option--highlighted {
+        background: var(--accent) !important;
+        color: #fff !important;
+      }
+
+      /* THEME TOGGLE SWITCH */
+      .theme-switch {
+        position: relative;
+      }
+
+      .theme-switch input {
+        display: none;
+      }
+
+      .theme-switch label {
+        width: 52px;
+        height: 26px;
+        background: #6b7280;
+        display: inline-block;
+        border-radius: 30px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      /* knob */
+      .theme-switch label::after {
+        content: "🌙";
+        width: 22px;
+        height: 22px;
+        background: #fff;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: all 0.3s;
+      }
+
+      /* checked = dark */
+      .theme-switch input:checked + label {
+        background: var(--accent);
+      }
+
+      .theme-switch input:checked + label::after {
+        content: "☀️";
+        transform: translateX(26px);
+      }
+      .footer-about {
+        max-width: 320px;
+        word-wrap: break-word;
+        line-height: 1.6;
+      }
+
+
+      .dashboard-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  color: var(--text-main);
+}
+
+.status-open {
+  background: rgba(22,163,74,.15);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theme-table {
+  background: var(--bg-card);
+  color: var(--text-main);
+}
+
+.theme-table thead th {
+  background: var(--bg-soft);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.theme-table tbody tr + tr td {
+  border-top: 1px solid var(--border-soft);
+}
+
+.theme-table tbody tr:hover {
+  background: var(--bg-soft);
+}
+
+.theme-table td,
+.theme-table th {
+  border: none !important;
+  padding: 12px 14px;
+}
+    {% block styleblock %}{% endblock styleblock %}
   </style>
 </head>
 
 <body>
-  <!-- navbar -->
-  <nav class="navbar fixed-top  navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <strong><a class="navbar-brand mx-0 " style="color: #2a7da9;" href="/">Bookshelf.com</a></strong>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto me-auto mb-2 mb-lg-0 ">
-          <li class="nav-item mx-3">
-            <a class="nav-link {% block homePage %}{% endblock homePage %}" aria-current="page" href="/">Home</a>
-          </li>
-          <li class="nav-item mx-3">
-            <a class="nav-link {% block trandingPage %}{% endblock trandingPage %}" aria-current="page"
-              href="/tranding">Tranding</a>
-          </li>
-          <li class="nav-item mx-3">
-            </svg>
-            <a class="nav-link {% block aboutPage %}{% endblock aboutPage %}" href="/about">about</a>
-          </li>
-          <li class="nav-item mx-3">
-            <a class="nav-link {% block loginPage %}{% endblock loginPage %}" href="/login">login</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Admin pannel
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <a class="dropdown-item" href="/storedata">Storedata</a>
-              <a class="dropdown-item" href="/admin">Database</a>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div>
-          </li>
-         
 
-          </ul>
-          <ul class"nav navbar-nav navbar-right">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #2a7da9;">
-                <b>Pradhuman Tamboli</b>
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdownUser">
-                <a class="dropdown-item" href="/storedata">Logout</a>
-                <a class="dropdown-item" href="/admin">Database</a>
-              </div>
-            </li>
-          </ul>
+<!-- NAVBAR -->
+<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <!-- <a class="navbar-brand fw-bold text-info" href="/">Mahakaal Themes Cafe</a> -->
+    <a class="navbar-brand fw-bold" href="/" style="color: var(--accent); letter-spacing: 1px;">Mahakaal Themes Cafe</a>
 
-          <ul class"nav navbar-nav navbar-right">
-            <li class="nav-item mx-3">
-              <a class="navbar-brand justify-content-between" href="#">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart4" viewBox="0 0 16 16">
-                  <path d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5zM3.14 5l.5 2H5V5H3.14zM6 5v2h2V5H6zm3 0v2h2V5H9zm3 0v2h1.36l.5-2H12zm1.11 3H12v2h.61l.5-2zM11 8H9v2h2V8zM8 8H6v2h2V8zM5 8H3.89l.5 2H5V8zm0 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0zm9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"/>
-                </svg>
-              </a>
-            </li>
-          </ul>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+        <li class="nav-item">
+          <a class="nav-link" href="/">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/menu">Menu</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="/dashboard">Dashboard</a>
+        </li>
+
+        <!-- BILLING MODULE -->
+        <li class="nav-item">
+          <a class="nav-link"
+             href="{% url 'billing:create_bill' %}">
+            Billing
+          </a>
+        </li>
+
+        <!-- ADMIN PANEL -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            Admin Panel
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/admin">Database</a></li>
+            <li><a class="dropdown-item" href="#">New Bill</a></li>
+          </ul>
+        </li>
+
+      </ul>
+
+      
+      
+      <!-- THEME TOGGLE -->
+      <div class="theme-switch ms-3">
+        <input type="checkbox" id="themeToggle">
+        <label for="themeToggle"></label>
       </div>
+
     </div>
-  </nav>
-  <!-- end navbar -->
-  <div class="container-fluid bg-dark text-white">
-
-    <br/><br/><br/>
-    {% block body %}
-  
-    {% endblock body %}
-
-    <!-- footer -->
-    <hr>
-    <footer>
-      <div id="footer" class="container-fluid p-1 mt-3 bg-dark text-white">
-        <div class="container">
-          <div class="row p-2">
-            <div class="col-lg-4">
-              <h4>About Us</h4>
-              <p><small>somthing about me </small></p>
-            </div>
-            <div class="col-lg-4">
-              <h4>Importent Links</h4>
-              <ul class="list-unstyled">
-                <li><a href="#" class="text-white"><small>Twitter</small></a></li>
-                <li><a href="#" class="text-white"><small>Facebook</small></a></li>
-                <li><a href="#" class="text-white"><small>Instagram</small></a></li>
-                <li><a href="#" class="text-white"><small>Email</small></a></li>
-              </ul>
-            </div>
-
-            <div class="col-lg-4">
-              <h4>Contact Us</h4>
-              <p>
-              <address><small>Bus stand,mandal(311403) [Bhilwara]</small></address>
-              <strong><small>Phone:</strong> +91 1234567890</small><br>
-              <strong><small><small>mail:</small></strong> <a href="mailto:onlinedairysupport@gmail.com"
-                class="text-white"><small>onlinedairysupport@gmail.com</small></a>
-
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-    </footer>
   </div>
-    <!-- footer End-->
-    <div class="text-center bg-success p-2 text-white">&copy; 2020 . All rights reserved. Desigend by
-      Pradhuman Tamboli.
-    </div>
+</nav>
 
-   
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
-      crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
-      integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3"
-      crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.min.js"
-      integrity="sha384-IDwe1+LCz02ROU9k972gdyvl+AESN10+x7tBKgc9I5HFtuNz0wWnPclzo6p9vxnk"
-      crossorigin="anonymous"></script>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-  </body>
+<!-- CONTENT -->
+<div class="page-wrapper">
+  <main class="page-content">
+    <div class="container-fluid pt-4" style="margin-top:64px;">
+      {% block body %}{% endblock body %}
+    </div>
+  </main>
+
+<!-- FOOTER -->
+<footer style="background:var(--bg-main); color:var(--text-main);">
+  <hr style="border-color: var(--border-soft);">
+  <div class="container p-3">
+    <div class="row gx-5 align-items-start">
+
+      <!-- ABOUT -->
+      <div class="col-12 col-md-4 mb-4 mb-md-0">
+        <h4>About Us</h4>
+        <p class="footer-about mb-0">
+          <small>
+            A neighborhood café serving fresh coffee, handcrafted drinks,
+            and a calm space to relax, work, or catch up with friends.
+          </small>
+        </p>
+      </div>
+
+      <!-- LINKS -->
+      <div class="col-12 col-md-4 mb-4 mb-md-0">
+        <h4>Important Links</h4>
+        <ul class="list-unstyled mb-0">
+          <li><a href="#" class="footer-link">Twitter</a></li>
+          <li><a href="#" class="footer-link">Facebook</a></li>
+          <li><a href="#" class="footer-link">Instagram</a></li>
+        </ul>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="col-12 col-md-4">
+        <h4>Contact Us</h4>
+        <address class="mb-0">
+          <small>
+            Santh Kavar Ram Circle, Lakhuja Heights, Sindhu Nagar, Bhilwara
+          </small><br>
+          <small>Phone: +91 9530301414</small><br>
+          <small>Email: mtcsupport@gmail.com</small>
+        </address>
+      </div>
+
+    </div>
+  </div>
+</footer>
+</div>
+<div class="text-center p-2 footer-bottom">
+  © 2025 Mahakaal Themes Cafe
+</div>
+
+<!-- jQuery FIRST -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Theme toggle (NO jQuery used, safe here) -->
+<script>
+(function () {
+  const toggleBtn = document.getElementById("themeToggle");
+  if (!toggleBtn) return;
+
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme) {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+
+  toggleBtn.addEventListener("click", function () {
+    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  });
+})();
+</script>
+
+<!-- PAGE SCRIPTS (jQuery guaranteed available) -->
+{% block scripts %}{% endblock scripts %}
+
+</body>
 </html>
