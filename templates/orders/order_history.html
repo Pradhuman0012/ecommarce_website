@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} Timeline{% endblock %}
+
+{% block body %}
+<div class="container px-4 py-4">
+
+  <!-- HEADER -->
+  <div class="mb-4">
+    <h3 class="fw-bold mb-1">
+      Order #{{ order.id }} Timeline
+    </h3>
+    <div class="text-muted">
+      Customer: <strong>{{ order.customer_name }}</strong>
+    </div>
+
+    {% if order.bill %}
+      <a
+        href="{% url 'billing:bill_pdf' order.bill.id %}"
+        target="_blank"
+        class="btn btn-sm btn-outline-success mt-2"
+      >
+        Download Bill PDF
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- TIMELINE -->
+  {% for h in history %}
+  <div class="card shadow-sm mb-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Snapshot</strong>
+      <span class="text-muted">
+        {{ h.created_at|date:"d M Y, h:i A" }}
+      </span>
+    </div>
+
+    <div class="card-body">
+
+      <!-- META -->
+      <div class="row mb-3 small text-muted">
+        <div class="col-md-4">
+          Payment: <strong>{{ h.payment_mode }}</strong>
+        </div>
+        <div class="col-md-4">
+          Subtotal: ₹{{ h.subtotal|floatformat:2 }}
+        </div>
+        <div class="col-md-4">
+          Total: ₹{{ h.total_amount|floatformat:2 }}
+        </div>
+      </div>
+
+      <!-- ITEMS -->
+      <div class="row g-3">
+        {% for item in h.items_snapshot %}
+        <div class="col-md-6">
+          <div class="border rounded p-3 h-100">
+
+            <div class="fw-semibold">
+              {{ item.item_name }} × {{ item.quantity }}
+            </div>
+
+            <div class="small text-muted">
+              {% if item.priority %}
+              Priority: {{ item.priority }}
+              {% endif %}
+            </div>
+
+            {% if item.notes %}
+              <div class="small mt-2">
+                <strong>Note:</strong> {{ item.notes }}
+              </div>
+            {% endif %}
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+    <p class="text-muted">No history available.</p>
+  {% endfor %}
+
+  <a
+    href="{% url 'orders:order_history_list' %}"
+    class="btn btn-outline-secondary mt-3"
+  >
+    ← Back to Order History
+  </a>
+
+</div>
+{% endblock %}

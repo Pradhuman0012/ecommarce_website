@@ -5,23 +5,35 @@ class Category(models.Model):
     image = models.ImageField(upload_to="category_images/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
 class Item(models.Model):
+    class Station(models.TextChoices):
+        KITCHEN = "KITCHEN", "Kitchen"
+        BARISTA = "BARISTA", "Barista"
+
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE,
-        related_name="items"
+        related_name="items",
     )
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="item_images/", blank=True, null=True)
+
+    station = models.CharField(
+        max_length=20,
+        choices=Station.choices,
+        default=Station.KITCHEN,
+        help_text="Preparation station for this item",
+    )
+
     is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
     
 class ItemSize(models.Model):

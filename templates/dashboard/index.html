@@ -4,14 +4,75 @@
 {% block body %}
 <div class="container-fluid px-4 py-4">
 
-  <!-- HEADER -->
-  <div class="mb-4">
-    <h3 class="fw-bold mb-1">
-      Dashboard
-    </h3>
-    <div class="text-muted">
-      {{ today }}
+  <!-- HEADER + FILTER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Dashboard</h3>
+      <div class="text-muted">
+        Showing: <strong>{{ label }}</strong>
+      </div>
     </div>
+
+    <!-- FILTER FORM -->
+    <form method="get" class="d-flex gap-2 align-items-end">
+
+      <!-- MODE -->
+      <select name="mode"
+              class="form-select"
+              onchange="this.form.submit()">
+        <option value="day" {% if mode == "day" %}selected{% endif %}>
+          Day
+        </option>
+        <option value="month" {% if mode == "month" %}selected{% endif %}>
+          Month
+        </option>
+        <option value="year" {% if mode == "year" %}selected{% endif %}>
+          Year
+        </option>
+      </select>
+
+      <!-- DAY -->
+      {% if mode == "day" %}
+        <input type="date"
+               name="date"
+               value="{{ selected_date }}"
+               class="form-control"
+               onchange="this.form.submit()">
+      {% endif %}
+
+      <!-- MONTH -->
+      {% if mode == "month" %}
+        <select name="month" class="form-select">
+          {% for m in months %}
+            <option value="{{ m }}"
+              {% if m == selected_month %}selected{% endif %}>
+              {{ m }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <input type="number"
+               name="year"
+               value="{{ selected_year }}"
+               class="form-control"
+               placeholder="Year">
+
+        <button class="btn btn-primary">
+          Apply
+        </button>
+      {% endif %}
+
+      <!-- YEAR -->
+      {% if mode == "year" %}
+        <input type="number"
+               name="year"
+               value="{{ selected_year }}"
+               class="form-control"
+               placeholder="Year"
+               onchange="this.form.submit()">
+      {% endif %}
+
+    </form>
   </div>
 
   <!-- KPI ROW 1 -->
@@ -78,46 +139,36 @@
 
   </div>
 
-  <!-- STATUS -->
-  <div class="mb-4">
-    <span class="fw-semibold">Status:</span>
-    <span class="ms-2 px-3 py-1 rounded-pill status-open">
-      Open
-    </span>
-  </div>
-
   <!-- TOP ITEMS -->
   <div class="dashboard-card rounded-3 p-4">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="fw-bold mb-0">
-        Top Selling Items
-      </h6>
+      <h6 class="fw-bold mb-0">Top Selling Items</h6>
     </div>
 
     {% if top_items %}
-    <div class="table-responsive">
-      <table class="table table-sm mb-0 theme-table">
-        <thead>
-          <tr class="small">
-            <th>Item</th>
-            <th class="text-center">Qty</th>
-            <th class="text-end">Revenue</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for i in top_items %}
-          <tr>
-            <td class="fw-medium">{{ i.item__name }}</td>
-            <td class="text-center">{{ i.qty }}</td>
-            <td class="text-end fw-semibold">
-              ₹{{ i.revenue|floatformat:2 }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 theme-table">
+          <thead>
+            <tr class="small">
+              <th>Item</th>
+              <th class="text-center">Qty</th>
+              <th class="text-end">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in top_items %}
+              <tr>
+                <td class="fw-medium">{{ i.item__name }}</td>
+                <td class="text-center">{{ i.qty }}</td>
+                <td class="text-end fw-semibold">
+                  ₹{{ i.revenue|floatformat:2 }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
       <div class="text-muted small">No sales yet.</div>
     {% endif %}

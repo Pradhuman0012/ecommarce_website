@@ -20,16 +20,40 @@ class CafeConfig(models.Model):
         verbose_name = "Cafe Configuration"
         verbose_name_plural = "Cafe Configuration"
 
-
 class Bill(models.Model):
     """
     Represents a single customer bill / invoice.
     """
 
+    class PaymentMode(models.TextChoices):
+        CASH = "CASH", "Cash"
+        UPI = "UPI", "UPI"
+
     bill_number = models.CharField(max_length=20, unique=True, editable=False)
 
     customer_name = models.CharField(max_length=100)
     customer_phone = models.CharField(max_length=15)
+
+    # PAYMENT (AUDIT)
+    payment_mode = models.CharField(
+        max_length=10,
+        choices=PaymentMode.choices,
+        default=PaymentMode.UPI,
+    )
+
+    cash_received = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    change_returned = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
 
     discount_amount = models.DecimalField(
         max_digits=10, decimal_places=2, default=0
@@ -41,7 +65,7 @@ class Bill(models.Model):
     gst_percentage = models.DecimalField(
         max_digits=5, decimal_places=2
     )
-
+    bill_pdf_path = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

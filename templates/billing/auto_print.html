@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Printing...</title>
+</head>
+<body>
+
+<script>
+  // URLs to print
+  const urls = [
+    "{% url 'billing:bill_pdf' bill.id %}",
+    {% for recipe in order.recipes.all %}
+      "{% url 'orders:print_recipe' recipe.id %}",
+    {% endfor %}
+  ];
+
+  // Open each print in a new tab
+  urls.forEach((url, index) => {
+    setTimeout(() => {
+      const w = window.open(url, "_blank");
+      if (w) {
+        w.onload = () => {
+          w.print();
+        };
+      }
+    }, index * 300); // slight delay to avoid popup blocking
+  });
+
+  // Optional: go back to billing screen
+  setTimeout(() => {
+    window.location.href = "{% url 'billing:create_bill' %}";
+  }, 2000);
+</script>
+
+</body>
+</html>

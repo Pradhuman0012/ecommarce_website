@@ -1,3 +1,4 @@
+from urllib import request
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -12,69 +13,125 @@ from decimal import Decimal
 import uuid
 from .models import Bill, BillItem
 from home.models import Item
-
+from orders.models import Order, OrderItem
+from orders.service import generate_recipes_for_order
+from django.db import transaction
 from .models import Bill, BillItem, CafeConfig
+from utils.save_pdf import save_pdf_once
+from utils.pdf import draw_bill_pdf
+from io import BytesIO
 
 def create_bill(request):
     items = Item.objects.prefetch_related("sizes").filter(is_available=True)
 
     if request.method == "POST":
-        customer_name = request.POST.get("customer_name")
-        customer_phone = request.POST.get("customer_phone")
-        discount_percent = Decimal(request.POST.get("discount_percent") or 0)
+        with transaction.atomic():
+            
+            customer_name = request.POST.get("customer_name")
+            customer_phone = request.POST.get("customer_phone")
+            payment_mode = request.POST.get("payment_mode", "UPI")
+            cash_received = request.POST.get("cash_received")
+            change_amount = request.POST.get("change_amount")
+            discount_percent = Decimal(request.POST.get("discount_percent") or 0)
 
-        cafe = CafeConfig.objects.first()
-        gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
+            cafe = CafeConfig.objects.first()
+            gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
 
-        bill_number = f"BILL-{uuid.uuid4().hex[:8].upper()}"
+            bill_number = f"BILL-{uuid.uuid4().hex[:8].upper()}"
+            items_data = json.loads(request.POST.get("items_payload") or "{}")
 
-        items_payload = request.POST.get("items_payload")
-        items_data = json.loads(items_payload) if items_payload else {}
+            subtotal = Decimal("0.00")
 
-        subtotal = Decimal("0.00")
-
-        # CREATE BILL
-        bill = Bill.objects.create(
-            bill_number=bill_number,
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            discount_amount=Decimal("0.00"),
-            discount_percent=discount_percent,
-            gst_percentage=gst_percentage,
-        )
-
-        # ADD ITEMS (IMPORTANT FIX HERE)
-        for _, data in items_data.items():
-            qty = int(data["qty"])
-            item_id = int(data["item_id"])
-            size = data["size"]
-            price = Decimal(str(data["price"]))
-
-            if qty <= 0:
-                continue
-
-            item = Item.objects.get(id=item_id)
-
-            line_total = price * qty
-            subtotal += line_total
-
-            BillItem.objects.create(
-                bill=bill,
-                item=item,
-                size=size,          # assuming BillItem has size field
-                price=price,
-                quantity=qty,
+            # --------------------
+            # 1. CREATE BILL
+            # --------------------
+            bill = Bill.objects.create(
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                payment_mode=payment_mode,
+                cash_received=Decimal(cash_received) if cash_received else None,
+                change_returned=Decimal(change_amount) if change_amount else None,
+                discount_amount=Decimal("0.00"),
+                discount_percent=discount_percent,
+                gst_percentage=gst_percentage,
             )
 
-        # APPLY DISCOUNT
-        discount_amount = (subtotal * discount_percent) / Decimal("100")
-        discount_amount = min(discount_amount, subtotal)
+            # --------------------
+            # 2. CREATE ORDER (NEW)
+            # --------------------
+            order = Order.objects.create(
+                bill=bill,
+                customer_name=customer_name,
+            )
 
-        bill.discount_amount = discount_amount
-        bill.save()
+            # --------------------
+            # 3. ADD ITEMS
+            # --------------------
+            order_items = []
 
-        return redirect("billing:bill_pdf", bill_id=bill.id)
+            for data in items_data.values():
+                qty = int(data["qty"])
+                if qty <= 0:
+                    continue
 
+                item = Item.objects.get(id=int(data["item_id"]))
+                price = Decimal(str(data["price"]))
+                priority = int(data.get("priority", 1))
+                notes = data.get("notes", "")
+
+                line_total = price * qty
+                subtotal += line_total
+
+                # BILL ITEM
+                BillItem.objects.create(
+                    bill=bill,
+                    item=item,
+                    size=data["size"],
+                    price=price,
+                    quantity=qty,
+                )
+
+                # ORDER ITEM
+                order_items.append(
+                    OrderItem(
+                        order=order,
+                        item=item,
+                        quantity=qty,
+                        priority=priority,
+                        notes=notes,
+                    )
+                )
+
+            OrderItem.objects.bulk_create(order_items)
+
+            # --------------------
+            # 4. APPLY DISCOUNT
+            # --------------------
+            discount_amount = min(
+                (subtotal * discount_percent) / Decimal("100"),
+                subtotal
+            )
+            bill.discount_amount = discount_amount
+            bill.save()
+
+            # --------------------
+            # 5. GENERATE RECIPES
+            # --------------------
+            generate_recipes_for_order(order)
+
+            
+            buffer = BytesIO()
+            draw_bill_pdf(bill=bill, output=buffer)
+            print("PDF size:", buffer.getbuffer().nbytes)
+            save_pdf_once(
+                pdf_buffer=buffer,
+                filename=f"{bill.bill_number}.pdf",
+            )
+            return render(request, "billing/auto_print.html", {
+                "bill": bill,
+                "order": order,
+            })
+                        
     return render(request, "billing/create_bill.html", {"items": items})
 
 def bill_detail(request, bill_id):
@@ -96,6 +153,13 @@ def bill_detail(request, bill_id):
 
 
 def bill_pdf(request, bill_id):
+    bill = get_object_or_404(Bill, id=bill_id)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{bill.bill_number}.pdf"'
+
+    draw_bill_pdf(bill=bill, output=response)
+    return response
     bill = get_object_or_404(Bill, id=bill_id)
 
     response = HttpResponse(content_type="application/pdf")
