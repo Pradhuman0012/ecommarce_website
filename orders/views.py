@@ -1,49 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
+from reportlab.pdfgen import canvas
 from orders.models import Order, OrderHistory
 from reportlab.lib.pagesizes import mm
-from reportlab.pdfgen import canvas
-
-from billing.models import Bill
 from .models import Recipe
 
-
-# -----------------------------
-# Queue Screen (Secondary / Ops)
-# -----------------------------
-def order_queue(request):
-    """
-    Shows pending Kitchen and Barista recipes.
-    Used for monitoring / reprint / backup.
-    """
-
-    kitchen_recipes = (
-        Recipe.objects
-        .filter(station="KITCHEN", status="NEW")
-        .prefetch_related("items", "order")
-        .order_by("created_at")
-    )
-
-    barista_recipes = (
-        Recipe.objects
-        .filter(station="BARISTA", status="NEW")
-        .prefetch_related("items", "order")
-        .order_by("created_at")
-    )
-
-    return render(
-        request,
-        "orders/queue.html",
-        {
-            "kitchen_recipes": kitchen_recipes,
-            "barista_recipes": barista_recipes,
-        },
-    )
-
-
-# -----------------------------
-# Print Single Recipe (KOT)
-# -----------------------------
 def print_recipe(request, recipe_id):
     """
     Prints a single Kitchen or Barista recipe
@@ -91,54 +52,17 @@ def print_recipe(request, recipe_id):
     return response
 
 
-# -----------------------------
-# Print Hub (PRIMARY UX)
-# -----------------------------
-def print_hub(request, bill_id):
-    """
-    Single counter screen to print:
-    - Customer Bill
-    - Kitchen Slip
-    - Barista Slip
-    """
-
-    bill = get_object_or_404(Bill, id=bill_id)
-
-    # Guaranteed correct order (OneToOne)
-    order = bill.order
-
-    kitchen_recipe = order.recipes.filter(
-        station="KITCHEN"
-    ).first()
-
-    barista_recipe = order.recipes.filter(
-        station="BARISTA"
-    ).first()
-
-    return render(
-        request,
-        "orders/print_hub.html",
-        {
-            "bill": bill,
-            "kitchen_recipe": kitchen_recipe,
-            "barista_recipe": barista_recipe,
-        },
-    )
-
-
-
-
 def order_history_view(request, order_id):
     order = get_object_or_404(
         Order.objects.select_related("bill"),
         id=order_id
     )
 
-    history = (
-        OrderHistory.objects
-        .filter(order=order)
-        .order_by("-created_at")
-    )
+    history = OrderHistory.objects.filter(order=order).order_by("-created_at")
+
+    for h in history:
+        if isinstance(h.items_snapshot, dict):
+            h.items_snapshot = list(h.items_snapshot.values())
 
     return render(
         request,
@@ -155,7 +79,9 @@ def order_history_list_view(request):
         .select_related("bill")
         .order_by("-created_at")
     )
-
+    print("qs",qs)
+    for order in qs:
+        print("order",order)
     q = request.GET.get("q")
     if q:
         qs = qs.filter(
@@ -167,5 +93,7 @@ def order_history_list_view(request):
     return render(
         request,
         "orders/order_history_list.html",
-        {"orders": qs},
+        {
+            "orders": qs,
+        },
     )

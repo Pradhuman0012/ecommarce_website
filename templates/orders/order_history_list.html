@@ -1,117 +1,49 @@
 {% extends "base.html" %}
 {% block title %}Order History{% endblock %}
 
+{% block styleblock %}
+.stats-card { background: var(--bg-card); border-left: 4px solid var(--accent); }
+.order-id { color: var(--accent); font-family: monospace; }
+.theme-table tr:hover { background: var(--bg-soft) !important; }
+{% endblock %}
+
 {% block body %}
 <div class="container-fluid px-4 py-4">
-
-  <!-- HEADER -->
+ 
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold mb-0">Order History</h3>
-
-    <input
-      type="text"
-      id="searchInput"
-      class="form-control w-25"
-      placeholder="Search by order, customer, bill number"
-    >
+    <input type="text" id="searchInput" class="form-control w-25" placeholder="Search orders...">
   </div>
 
-  <!-- TABLE -->
-  <div class="card shadow-sm">
+  <div class="card shadow-sm border-0">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" id="orderTable">
-        <thead class="table-dark">
+      <table class="table theme-table align-middle mb-0" id="orderTable">
+        <thead>
           <tr>
-            <th>#</th>
-            <th onclick="sortTable(1)" style="cursor:pointer">Order</th>
-            <th onclick="sortTable(2)" style="cursor:pointer">Customer</th>
-            <th onclick="sortTable(3)" style="cursor:pointer">Created</th>
+            <th class="ps-4">ID & Bill</th>
+            <th>Customer</th>
+            <th class="text-center">Mode</th>
+            <th class="text-end">Total</th>
+            <th>Created</th>
             <th class="text-center">Actions</th>
           </tr>
         </thead>
-
         <tbody>
           {% for order in orders %}
           <tr>
-            <td>{{ forloop.counter }}</td>
-
-            <td class="fw-semibold">
-              #{{ order.id }}
-              {% if order.bill %}
-                <div class="small text-muted">
-                  {{ order.bill.bill_number }}
-                </div>
-              {% endif %}
-            </td>
-
-            <td>{{ order.customer_name }}</td>
-
-            <td data-date="{{ order.created_at|date:'U' }}">
-              {{ order.created_at|date:"d M Y, h:i A" }}
-            </td>
-
+            <td class="ps-4"><span class="order-id fw-bold">#{{ order.id }}</span></td>
+            <td><div class="fw-bold">{{ order.customer_name }}</div></td>
+            <td class="text-center"><span class="badge bg-soft-primary text-primary border">{{ order.bill.payment_mode }}</span></td>
+            <td class="text-end fw-bold" data-amount="{{ order.bill.total_amount|floatformat:2 }}">₹ {{ order.bill.total_amount|floatformat:2 }}</td>
+            <td>{{ order.created_at|date:"d M, h:i A" }}</td>
             <td class="text-center">
-              <a
-                href="{% url 'orders:order_history' order.id %}"
-                class="btn btn-sm btn-outline-primary me-1"
-              >
-                Timeline
-              </a>
-
-              {% if order.bill %}
-                <a
-                  href="{% url 'billing:bill_pdf' order.bill.id %}"
-                  target="_blank"
-                  class="btn btn-sm btn-outline-success"
-                >
-                  Bill PDF
-                </a>
-              {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="text-center text-muted py-4">
-              No orders found
+              <a href="{% url 'orders:order_history' order.id %}" class="btn btn-sm btn-outline-secondary">View</a>
             </td>
           </tr>
           {% endfor %}
         </tbody>
-
       </table>
     </div>
   </div>
-
 </div>
-
-<!-- SEARCH + SORT -->
-<script>
-document.getElementById("searchInput").addEventListener("keyup", function () {
-  const filter = this.value.toLowerCase();
-  document.querySelectorAll("#orderTable tbody tr").forEach(row => {
-    row.style.display = row.innerText.toLowerCase().includes(filter)
-      ? ""
-      : "none";
-  });
-});
-
-let sortDirection = {};
-function sortTable(colIndex) {
-  const tbody = document.getElementById("orderTable").tBodies[0];
-  const rows = Array.from(tbody.rows);
-
-  sortDirection[colIndex] = !sortDirection[colIndex];
-  const asc = sortDirection[colIndex];
-
-  rows.sort((a, b) => {
-    let x = a.cells[colIndex].dataset.date || a.cells[colIndex].innerText;
-    let y = b.cells[colIndex].dataset.date || b.cells[colIndex].innerText;
-
-    if (!isNaN(x) && !isNaN(y)) return asc ? x - y : y - x;
-    return asc ? x.localeCompare(y) : y.localeCompare(x);
-  });
-
-  rows.forEach(r => tbody.appendChild(r));
-}
-</script>
 {% endblock %}

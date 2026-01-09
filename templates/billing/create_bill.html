@@ -5,98 +5,112 @@
 .total-card {
   background: var(--bg-soft);
   border: 1px solid var(--border-soft);
+  border-radius: 8px;
 }
+
 .total-label {
   font-weight: 700;
+  font-size: 1.1rem;
 }
+
 .total-value {
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--accent);
 }
+
+.table th {
+  background: var(--bg-soft);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.item-add-section {
+  border: none !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
 {% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-
   <h2 class="mb-4">Create New Bill</h2>
 
   <form method="post">
     {% csrf_token %}
 
     <!-- CUSTOMER -->
-    <div class="card p-3 mb-4">
+    <div class="card p-3 mb-3">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Customer Name</label>
-          <input type="text" name="customer_name" class="form-control form-control-lg" required>
+          <label class="form-label fw-bold">Customer Name</label>
+          <input type="text" name="customer_name" class="form-control" required>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Mobile Number</label>
-          <input type="text" name="customer_phone" class="form-control form-control-lg" required>
+          <label class="form-label fw-bold">Mobile Number</label>
+          <input type="text" name="customer_phone" class="form-control" required>
         </div>
       </div>
     </div>
 
     <!-- ADD ITEM -->
-    <div class="card p-3 mb-4">
-      <div class="row g-3 align-items-end">
-
-        <div class="col-md-5">
-          <label class="form-label">Item</label>
-          <select id="itemSelect" class="form-control form-control-lg">
-            <option value="">Select item</option>
+    <div class="card p-3 mb-3 item-add-section">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label fw-bold">Item</label>
+          <select id="itemSelect" class="form-control">
+            <option value="">Search item...</option>
             {% for item in items %}
-            <option value="{{ item.id }}" data-sizes='[
-              {% for s in item.sizes.all %}
-              {
-                "size": "{{ s.size }}",
-                "label": "{{ s.get_size_display }}",
-                "price": "{{ s.price }}"
-              }{% if not forloop.last %},{% endif %}
-              {% endfor %}
-            ]'>{{ item.name }}</option>
+            <option value="{{ item.id }}"
+              data-sizes='[
+                {% for s in item.sizes.all %}
+                {
+                  "size": "{{ s.size }}",
+                  "label": "{{ s.get_size_display }}",
+                  "price": "{{ s.price }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+              ]'>
+              {{ item.name }}
+            </option>
             {% endfor %}
           </select>
         </div>
 
         <div class="col-md-3">
-          <label class="form-label">Size</label>
-          <select id="itemSize" class="form-control form-control-lg" disabled>
+          <label class="form-label fw-bold">Size</label>
+          <select id="itemSize" class="form-select" disabled>
             <option value="">Select size</option>
           </select>
         </div>
 
         <div class="col-md-2">
-          <label class="form-label">Qty</label>
-          <input type="number" id="itemQty" class="form-control form-control-lg" value="1" min="1">
+          <label class="form-label fw-bold">Qty</label>
+          <input type="number" id="itemQty" class="form-control" value="1" min="1">
         </div>
+        
 
-        <div class="col-md-2">
+        <div class="col-md-3">
           <button type="button"
-                  class="btn btn-accent btn-lg w-100 fw-bold"
+                  class="btn btn-accent w-100 fw-bold"
                   onclick="addItem()">
-            + ADD
+            + ADD ITEM
           </button>
         </div>
-
       </div>
     </div>
 
-    <!-- BILL TABLE -->
-    <div class="card p-3 mb-4">
+    <!-- ITEMS TABLE -->
+    <div class="card mb-3">
       <div class="table-responsive">
-        <table class="table align-middle">
+        <table class="table table-hover align-middle mb-0">
           <thead>
             <tr>
-              <th>Item</th>
+              <th style="width:30%">Item</th>
               <th>Size</th>
               <th class="text-end">Price</th>
-              <th class="text-center">Qty</th>
-              <th>Priority</th>
-              <th>Notes</th>
+              <th class="text-center" style="width:100px">Qty</th>
               <th class="text-end">Total</th>
-              <th></th>
+              <th class="text-center">Action</th>
             </tr>
           </thead>
           <tbody id="billItems"></tbody>
@@ -104,168 +118,174 @@
       </div>
     </div>
 
-    <!-- TOTAL -->
-    <div class="row g-3 mb-4">
+    <!-- PAYMENT + DISCOUNT -->
+    <div class="row g-3">
+      <div class="col-md-7">
+        <div class="card p-3 h-100">
+          <div class="row g-3">
 
-      <div class="col-md-12">
-        <label class="form-label">Discount (%)</label>
-        <input type="number"
-               id="discount"
-               name="discount_percent"
-               class="form-control"
-               value="0"
-               min="0"
-               max="100">
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Discount (%)</label>
+              <input type="number"
+                     id="discount"
+                     name="discount_percent"
+                     class="form-control"
+                     value="0"
+                     min="0"
+                     max="100">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-bold">Payment Mode</label>
+              <select id="payment_mode" name="payment_mode" class="form-select">
+                <option value="UPI">UPI / Digital</option>
+                <option value="CASH">Cash</option>
+              </select>
+            </div>
+
+            <div class="col-md-6 d-none" id="cashReceivedBox">
+              <label class="form-label">Cash Received</label>
+              <input type="number"
+                     id="cashReceived"
+                     class="form-control"
+                     placeholder="0.00">
+            </div>
+
+            <div class="col-md-6 d-none" id="changeBox">
+              <label class="form-label">Return Change</label>
+              <input type="text"
+                     id="changeAmount"
+                     class="form-control fw-bold text-success"
+                     readonly
+                     value="₹ 0.00">
+            </div>
+
+          </div>
+        </div>
       </div>
 
-      <div class="card p-4 total-card">
-        <div class="d-flex justify-content-between mb-2">
-          <span>Subtotal</span>
-          <span>₹ <span id="subtotal">0.00</span></span>
+      <!-- TOTAL CARD -->
+      <div class="col-md-5">
+        <div class="card p-3 total-card h-100">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal</span>
+            <span class="fw-bold">₹ <span id="subtotal">0.00</span></span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Discount</span>
+            <span class="text-danger fw-bold">
+              - ₹ <span id="discount-amount">0.00</span>
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>GST (5%)</span>
+            <span class="fw-bold">₹ <span id="gst">0.00</span></span>
+          </div>
+
+          <hr>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="total-label">GRAND TOTAL</span>
+            <span class="total-value">₹ <span id="grand-total">0.00</span></span>
+          </div>
         </div>
-
-        <div class="d-flex justify-content-between mb-2">
-          <span>Discount</span>
-          <span class="text-danger">
-            ₹ <span id="discount-amount">0.00</span>
-          </span>
-        </div>
-
-        <div class="d-flex justify-content-between mb-3">
-          <span>GST (5%)</span>
-          <span>₹ <span id="gst">0.00</span></span>
-        </div>
-
-        <hr>
-
-        <div class="d-flex justify-content-between align-items-center mt-3">
-          <span class="total-label">TOTAL</span>
-          <span class="total-value">₹ <span id="grand-total">0.00</span></span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- PAYMENT -->
-    <div class="card p-3 mb-4">
-      <h5 class="mb-3">Payment</h5>
-
-      <div class="row g-3 align-items-end">
-
-        <div class="col-md-4">
-          <label class="form-label">Payment Mode</label>
-          <select id="paymentMode" class="form-select form-select-lg">
-            <option value="UPI">UPI</option>
-            <option value="CASH">Cash</option>
-          </select>
-        </div>
-
-        <div class="col-md-4 d-none" id="cashReceivedBox">
-          <label class="form-label">Cash Received</label>
-          <input
-            type="number"
-            id="cashReceived"
-            class="form-control form-control-lg"
-            min="0"
-            placeholder="e.g. 10000"
-          >
-        </div>
-
-        <div class="col-md-4 d-none" id="changeBox">
-          <label class="form-label">Return Change</label>
-          <input
-            type="text"
-            id="changeAmount"
-            class="form-control form-control-lg fw-bold text-success"
-            readonly
-            value="₹ 0.00"
-          >
-        </div>
-
       </div>
     </div>
 
     <input type="hidden" name="items_payload" id="itemsPayload">
 
-    <div class="d-grid mb-5">
-      <button type="button"
-              class="btn btn-accent btn-lg fw-bold py-3"
-              onclick="submitBill()">
-        GENERATE BILL & PRINT
-      </button>
-    </div>
+    <button type="button"
+            class="btn btn-accent btn-lg w-100 fw-bold mt-4 py-3"
+            onclick="submitBill()">
+      GENERATE & PRINT
+    </button>
 
   </form>
 </div>
 
-{% block scripts %}
 <script>
-(function waitForJquery() {
-  if (typeof window.jQuery === "undefined") {
-    setTimeout(waitForJquery, 50);
-    return;
-  }
-
+(function () {
   window.bill = {};
   const GST_PERCENTAGE = 5;
 
-  $("#itemSelect").select2({
-    placeholder: "Search item...",
-    width: "100%"
-  });
+  function init() {
+    if (typeof jQuery === "undefined") {
+      return setTimeout(init, 50);
+    }
 
-  $("#itemSelect").on("change", function () {
-    const sizeSelect = document.getElementById("itemSize");
-    sizeSelect.innerHTML = '<option value="">Select size</option>';
-    sizeSelect.disabled = true;
+    // ITEM SELECT
+    $("#itemSelect").select2({ width: "100%" }).on("change", function () {
+      const sizeSelect = document.getElementById("itemSize");
+      sizeSelect.innerHTML = '<option value="">Select size</option>';
+      sizeSelect.disabled = true;
 
-    const option = this.options[this.selectedIndex];
-    if (!option || !option.dataset.sizes) return;
+      const option = this.options[this.selectedIndex];
+      if (!option?.dataset.sizes) return;
 
-    JSON.parse(option.dataset.sizes).forEach(s => {
-      const opt = document.createElement("option");
-      opt.value = s.size;
-      opt.dataset.price = s.price;
-      opt.textContent = `${s.label} (₹${s.price})`;
-      sizeSelect.appendChild(opt);
+      JSON.parse(option.dataset.sizes).forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.size;
+        opt.dataset.price = s.price;
+        opt.textContent = `${s.label} (₹${s.price})`;
+        sizeSelect.appendChild(opt);
+      });
+
+      sizeSelect.disabled = false;
     });
 
-    sizeSelect.disabled = false;
-  });
+    // DISCOUNT
+    $("#discount").on("input", renderBill);
 
-  $("#discount").on("input", renderBill);
+    // ✅ FIX: PAYMENT MODE HANDLER
+    $("#payment_mode").on("change", function () {
+      const isCash = this.value === "CASH";
+      $("#cashReceivedBox, #changeBox").toggleClass("d-none", !isCash);
+
+      if (!isCash) {
+        $("#cashReceived").val("");
+        $("#changeAmount").val("₹ 0.00");
+      }
+    });
+
+    // CASH CHANGE CALCULATION
+    $("#cashReceived").on("input", function () {
+      const cash = parseFloat(this.value) || 0;
+      const total = parseFloat($("#grand-total").text()) || 0;
+      $("#changeAmount").val(`₹ ${Math.max(cash - total, 0).toFixed(2)}`);
+    });
+  }
+
+  init();
 
   window.addItem = function () {
     const itemId = $("#itemSelect").val();
-    const itemName = $("#itemSelect option:selected").text();
-    const size = $("#itemSize").val();
+    const itemName = $("#itemSelect option:selected").text().trim();
+    const sizeSelect = document.getElementById("itemSize");
+    const size = sizeSelect.value;
+    const sizeLabel = sizeSelect.options[sizeSelect.selectedIndex]?.text.split("(")[0].trim();
     const price = parseFloat($("#itemSize option:selected").data("price"));
-    const qty = parseInt($("#itemQty").val());
+    const qty = parseInt($("#itemQty").val(), 10);
 
     if (!itemId || !size || isNaN(price) || qty <= 0) {
-      alert("Select item, size & quantity properly");
+      alert("Select item details");
       return;
     }
 
     const key = `${itemId}_${size}`;
-
     bill[key] = bill[key]
       ? { ...bill[key], qty: bill[key].qty + qty }
-      : {
-          item_id: itemId,
-          name: itemName,
-          size,
-          price,
-          qty,
-          priority: 1,
-          notes: ""
-        };
+      : { item_id: itemId, name: itemName, size: sizeLabel, price, qty };
 
     renderBill();
-
     $("#itemSelect").val(null).trigger("change");
-    $("#itemSize").prop("disabled", true).html('<option value="">Select size</option>');
     $("#itemQty").val(1);
+  };
+
+  window.updateQty = function (key, val) {
+    bill[key].qty = parseInt(val, 10) || 1;
+    renderBill();
   };
 
   window.removeItem = function (key) {
@@ -274,45 +294,30 @@
   };
 
   function renderBill() {
-    const tbody = document.getElementById("billItems");
-    tbody.innerHTML = "";
     let subtotal = 0;
+    $("#billItems").html("");
 
     Object.entries(bill).forEach(([key, i]) => {
-      const total = i.price * i.qty;
-      subtotal += total;
+      const rowTotal = i.price * i.qty;
+      subtotal += rowTotal;
 
-      tbody.innerHTML += `
+      $("#billItems").append(`
         <tr>
-          <td>${i.name}</td>
-          <td>${i.size}</td>
+          <td class="fw-bold">${i.name}</td>
+          <td><span class="badge bg-light text-dark border">${i.size}</span></td>
           <td class="text-end">₹${i.price.toFixed(2)}</td>
           <td>
             <input type="number" min="1" value="${i.qty}"
-              class="form-control form-control-sm"
-              onchange="bill['${key}'].qty=parseInt(this.value)||1; renderBill()">
+              class="form-control form-control-sm text-center"
+              oninput="updateQty('${key}', this.value)">
           </td>
-          <td>
-            <select class="form-select form-select-sm"
-              onchange="bill['${key}'].priority=parseInt(this.value)">
-              ${[1,2,3,4,5].map(p =>
-                `<option value="${p}" ${p===i.priority?'selected':''}>${p}</option>`
-              ).join("")}
-            </select>
-          </td>
-          <td>
-            <input type="text"
-              class="form-control form-control-sm"
-              placeholder="e.g. No onion, sugar less"
-              value="${i.notes}"
-              onchange="bill['${key}'].notes=this.value">
-          </td>
-          <td class="text-end">₹${total.toFixed(2)}</td>
-          <td>
-            <button class="btn btn-sm btn-danger"
+          <td class="text-end fw-bold">₹${rowTotal.toFixed(2)}</td>
+          <td class="text-center">
+            <button type="button" class="btn btn-sm text-danger"
               onclick="removeItem('${key}')">×</button>
           </td>
-        </tr>`;
+        </tr>
+      `);
     });
 
     const discountPercent = +$("#discount").val() || 0;
@@ -324,42 +329,20 @@
     $("#discount-amount").text(discountAmount.toFixed(2));
     $("#gst").text(gst.toFixed(2));
     $("#grand-total").text((taxable + gst).toFixed(2));
-  }
 
-})();
-
-  // PAYMENT MODE HANDLING
-  $("#paymentMode").on("change", function () {
-    const mode = this.value;
-
-    if (mode === "CASH") {
-      $("#cashReceivedBox").removeClass("d-none");
-      $("#changeBox").removeClass("d-none");
-    } else {
-      $("#cashReceivedBox").addClass("d-none");
-      $("#changeBox").addClass("d-none");
-      $("#cashReceived").val("");
-      $("#changeAmount").val("₹ 0.00");
+    if ($("#payment_mode").val() === "CASH") {
+      $("#cashReceived").trigger("input");
     }
-  });
-
-  // CASH CHANGE CALCULATION
-  $("#cashReceived").on("input", function () {
-    const cash = parseFloat(this.value) || 0;
-    const total = parseFloat($("#grand-total").text()) || 0;
-
-    const change = Math.max(cash - total, 0);
-    $("#changeAmount").val(`₹ ${change.toFixed(2)}`);
-  });
-
-window.submitBill = function () {
-  if (!Object.keys(bill).length) {
-    alert("Add at least one item");
-    return;
   }
-  document.getElementById("itemsPayload").value = JSON.stringify(bill);
-  document.querySelector("form").submit();
-};
+
+  window.submitBill = function () {
+    if (!Object.keys(bill).length) {
+      alert("Add items first");
+      return;
+    }
+    $("#itemsPayload").val(JSON.stringify(bill));
+    document.querySelector("form").submit();
+  };
+})();
 </script>
-{% endblock %}
 {% endblock %}
