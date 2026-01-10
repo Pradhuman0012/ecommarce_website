@@ -15,6 +15,7 @@
       
 /* DEFAULT = LIGHT MODE */
 :root {
+  --brand-color: #0f172a;
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
   --bg-soft: #f1f5f9;
@@ -29,6 +30,7 @@
 
 /* DARK MODE */
 [data-theme="dark"] {
+  --brand-color: #7dd3a8;
   --bg-main: #141414;
   --bg-card: #1c1c1c;
   --bg-soft: #232323;
@@ -286,6 +288,48 @@
   border: none !important;
   padding: 12px 14px;
 }
+
+/* THEME-AWARE NAVBAR */
+.theme-navbar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.theme-navbar .nav-link {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.theme-navbar .nav-link:hover {
+  color: var(--accent);
+}
+
+.theme-navbar .navbar-brand {
+  color: var(--brand-color);
+  font-weight: 700;
+}
+
+.theme-navbar .navbar-toggler {
+  border-color: var(--border-soft);
+}
+
+
+.dropdown-menu {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+}
+
+.dropdown-item {
+  color: var(--text-main);
+}
+
+.dropdown-item:hover {
+  background: var(--bg-soft);
+}
+
+.theme-navbar {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
     {% block styleblock %}{% endblock styleblock %}
   </style>
 </head>
@@ -293,10 +337,12 @@
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
+<nav class="navbar fixed-top navbar-expand-lg theme-navbar">
+    <div class="container-fluid">
     <!-- <a class="navbar-brand fw-bold text-info" href="/">Mahakaal Themes Cafe</a> -->
-    <a class="navbar-brand fw-bold" href="/" style="color: var(--accent); letter-spacing: 1px;">Mahakaal Themes Cafe</a>
+    <a class="navbar-brand" href="/">
+      Mahakaal Themes Cafe
+    </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
             data-bs-target="#navbarSupportedContent">
