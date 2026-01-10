@@ -17,7 +17,7 @@ def load_menu_from_json(json_path, clear_existing=False):
         data = json.load(f)
 
     if clear_existing:
-        # ❗ Delete only items NOT used in any bill
+        # Delete only items NOT used in any bill
         unused_items = Item.objects.annotate(bill_count=Count("billitem")).filter(
             bill_count=0
         )
@@ -50,5 +50,3 @@ def load_menu_from_json(json_path, clear_existing=False):
             ItemSize.objects.update_or_create(
                 item=item_obj, size=size, defaults={"price": Decimal(price)}
             )
-
-    print("✅ Menu loaded safely (used items preserved)")
