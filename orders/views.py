@@ -4,7 +4,9 @@ from reportlab.pdfgen import canvas
 from orders.models import Order, OrderHistory
 from reportlab.lib.pagesizes import mm
 from .models import Recipe
+from core.decorators import staff_required
 
+@staff_required
 def print_recipe(request, recipe_id):
     """
     Prints a single Kitchen or Barista recipe
@@ -51,7 +53,7 @@ def print_recipe(request, recipe_id):
 
     return response
 
-
+@staff_required
 def order_history_view(request, order_id):
     order = get_object_or_404(
         Order.objects.select_related("bill"),
@@ -73,6 +75,7 @@ def order_history_view(request, order_id):
         },
     )
 
+@staff_required
 def order_history_list_view(request):
     qs = (
         Order.objects

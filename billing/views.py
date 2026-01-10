@@ -20,7 +20,9 @@ from .models import Bill, BillItem, CafeConfig
 from utils.save_pdf import save_pdf_once
 from utils.pdf import draw_bill_pdf
 from io import BytesIO
+from core.decorators import admin_required, staff_required
 
+@staff_required
 def create_bill(request):
     items = Item.objects.prefetch_related("sizes").filter(is_available=True)
 
@@ -134,6 +136,7 @@ def create_bill(request):
                         
     return render(request, "billing/create_bill.html", {"items": items})
 
+@staff_required
 def bill_detail(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
     items = bill.items.select_related("item")
@@ -152,6 +155,7 @@ def bill_detail(request, bill_id):
     })
 
 
+@staff_required
 def bill_pdf(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
 
@@ -159,84 +163,4 @@ def bill_pdf(request, bill_id):
     response["Content-Disposition"] = f'inline; filename="{bill.bill_number}.pdf"'
 
     draw_bill_pdf(bill=bill, output=response)
-    return response
-    bill = get_object_or_404(Bill, id=bill_id)
-
-    response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{bill.bill_number}.pdf"'
-
-    # 80mm thermal size
-    width = 80 * mm
-    height = 220 * mm
-
-    p = canvas.Canvas(response, pagesize=(width, height))
-    y = height - 8 * mm
-
-    def text(line, bold=False, center=False):
-        nonlocal y
-        p.setFont("Courier-Bold" if bold else "Courier", 8.5 if not bold else 9.5)
-        if center:
-            p.drawCentredString(width / 2, y, line)
-        else:
-            p.drawString(5 * mm, y, line)
-        y -= 4.5 * mm
-
-    # ---------- HEADER ----------
-    text("MAHAKAAL THEMES CAFE", bold=True, center=True)
-    text("Mo. 9530303016", center=True)
-    text("GST No: 08MAQPS9885M1ZX", center=True)
-    text("Plot No. 92, Lakhuja Heights", center=True)
-    text("Sindhu Nagar, Bhilwara", center=True)
-    text("-" * 32)
-
-    # ---------- BILL INFO ----------
-    text(f"Bill No : {bill.bill_number}")
-    text(f"Date    : {bill.created_at.strftime('%d-%m-%Y %I:%M %p')}")
-    text(f"Customer: {bill.customer_name}")
-    text(f"Mobile  : {bill.customer_phone}")
-    text("-" * 32)
-
-    # ---------- TABLE HEADER ----------
-    text("ITEM        QTY  RATE   AMT", bold=True)
-    text("-" * 32)
-
-    # ---------- ITEMS ----------
-    subtotal = Decimal("0.00")
-
-    for bi in bill.items.all():
-        line_total = bi.price * bi.quantity
-        subtotal += line_total
-
-        name = bi.item.name[:10]  # trim for thermal width
-        text(f"{name:<10} {bi.quantity:>3} {bi.price:>6} {line_total:>6}")
-
-    # ---------- TOTALS ----------
-    text("-" * 32)
-
-    taxable_amount = max(subtotal - bill.discount_amount, Decimal("0.00"))
-    gst_total = (taxable_amount * bill.gst_percentage) / Decimal("100")
-    cgst = gst_total / 2
-    sgst = gst_total / 2
-    grand_total = taxable_amount + gst_total
-
-    text(f"Sub Total     : {subtotal:>7.2f}")
-
-    if bill.discount_amount > 0:
-        text(
-            f"Discount ({bill.discount_percent:.0f}%)"
-            f" : {bill.discount_amount:>7.2f}"
-        )
-
-    text(f"CGST @{bill.gst_percentage/2:.2f}% : {cgst:>7.2f}")
-    text(f"SGST @{bill.gst_percentage/2:.2f}% : {sgst:>7.2f}")
-
-    text("-" * 32)
-    text(f"TOTAL         : ₹ {grand_total:.2f}", bold=True)
-    # ---------- FOOTER ----------
-    y -= 3 * mm
-    text("Thank you! Visit Again", center=True)
-    text("Powered by MTC", center=True)
-
-    p.showPage()
-    p.save()
     return response

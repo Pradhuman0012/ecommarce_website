@@ -317,22 +317,28 @@
         <li class="nav-item">
           <a class="nav-link" href="/about">About</a>
         </li>
-
+        {% if user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link" href="/dashboard">Dashboard</a>
         </li>
+        {% endif %}
+        {% if user.is_staff or user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link" href="/orders/history">Order History</a>
         </li>
-
+        {% endif %}
+        
         <!-- BILLING MODULE -->
+        {% if user.is_staff or user.is_superuser %}
         <li class="nav-item">
           <a class="nav-link"
              href="{% url 'billing:create_bill' %}">
             Billing
           </a>
+          {% endif %}
         </li>
 
+        {% if user.is_superuser %}
         <!-- ADMIN PANEL -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -343,11 +349,55 @@
             <li><a class="dropdown-item" href="#">New Bill</a></li>
           </ul>
         </li>
+        {% endif %}
 
       </ul>
 
       
       
+    
+      <ul class="navbar-nav ms-auto align-items-center">
+
+      {% if user.is_authenticated %}
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            {{ user.username }}
+          </a>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-item-text text-muted">
+              {% if user.is_superuser %}
+                Admin
+              {% elif user.is_staff %}
+                Staff
+              {% else %}
+                User
+              {% endif %}
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+              <form method="post" action="{% url 'authentication:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="dropdown-item">
+                  Logout
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+
+      {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'authentication:login' %}">
+            Login
+          </a>
+        </li>
+      {% endif %}
+
+    </ul>
+
       <!-- THEME TOGGLE -->
       <div class="theme-switch ms-3">
         <input type="checkbox" id="themeToggle">

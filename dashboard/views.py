@@ -3,10 +3,10 @@ from django.utils.timezone import localdate
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 from datetime import date
 from decimal import Decimal
-
+from core.decorators import admin_required
 from billing.models import Bill, BillItem
 
-
+@admin_required
 def dashboard_home(request):
     mode = request.GET.get("mode", "day")
 
