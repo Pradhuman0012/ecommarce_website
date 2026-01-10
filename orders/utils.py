@@ -1,5 +1,6 @@
 # orders/utils/pdf.py
 from io import BytesIO
+
 from reportlab.lib.pagesizes import mm
 from reportlab.pdfgen import canvas
 

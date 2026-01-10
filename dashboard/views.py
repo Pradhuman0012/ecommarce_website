@@ -1,10 +1,13 @@
-from django.shortcuts import render
-from django.utils.timezone import localdate
-from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 from datetime import date
 from decimal import Decimal
-from core.decorators import admin_required
+
+from django.db.models import DecimalField, ExpressionWrapper, F, Sum
+from django.shortcuts import render
+from django.utils.timezone import localdate
+
 from billing.models import Bill, BillItem
+from core.decorators import admin_required
+
 
 @admin_required
 def dashboard_home(request):
@@ -25,9 +28,7 @@ def dashboard_home(request):
         else:
             selected_date = today
 
-        bills = Bill.objects.filter(
-            created_at__date=selected_date
-        )
+        bills = Bill.objects.filter(created_at__date=selected_date)
 
         label = selected_date.strftime("%d %b %Y")
 
@@ -51,9 +52,7 @@ def dashboard_home(request):
     elif mode == "year":
         selected_year = int(request.GET.get("year", today.year))
 
-        bills = Bill.objects.filter(
-            created_at__year=selected_year
-        )
+        bills = Bill.objects.filter(created_at__year=selected_year)
 
         label = str(selected_year)
 
@@ -71,48 +70,41 @@ def dashboard_home(request):
         total_gst += bill.gst_amount()
 
     total_qty = (
-        BillItem.objects
-        .filter(bill__in=bills)
-        .aggregate(qty=Sum("quantity"))["qty"]
+        BillItem.objects.filter(bill__in=bills).aggregate(qty=Sum("quantity"))["qty"]
         or 0
     )
 
-    avg_bill = (
-        total_sales / total_bills
-        if total_bills > 0
-        else Decimal("0.00")
-    )
+    avg_bill = total_sales / total_bills if total_bills > 0 else Decimal("0.00")
 
     revenue_expr = ExpressionWrapper(
         F("price") * F("quantity"),
-        output_field=DecimalField(max_digits=12, decimal_places=2)
+        output_field=DecimalField(max_digits=12, decimal_places=2),
     )
 
     top_items = (
-        BillItem.objects
-        .filter(bill__in=bills)
+        BillItem.objects.filter(bill__in=bills)
         .values("item__name")
-        .annotate(
-            qty=Sum("quantity"),
-            revenue=Sum(revenue_expr)
-        )
+        .annotate(qty=Sum("quantity"), revenue=Sum(revenue_expr))
         .order_by("-qty")[:5]
     )
 
-    return render(request, "dashboard/index.html", {
-        "mode": mode,
-        "label": label,
-        "total_sales": total_sales,
-        "total_bills": total_bills,
-        "total_discount": total_discount,
-        "total_gst": total_gst,
-        "total_qty": total_qty,
-        "avg_bill": avg_bill,
-        "top_items": top_items,
-
-        # REQUIRED FOR TEMPLATE
-        "months": range(1, 13),
-        "selected_date": request.GET.get("date", today.isoformat()),
-        "selected_month": int(request.GET.get("month", today.month)),
-        "selected_year": int(request.GET.get("year", today.year)),
-    })
+    return render(
+        request,
+        "dashboard/index.html",
+        {
+            "mode": mode,
+            "label": label,
+            "total_sales": total_sales,
+            "total_bills": total_bills,
+            "total_discount": total_discount,
+            "total_gst": total_gst,
+            "total_qty": total_qty,
+            "avg_bill": avg_bill,
+            "top_items": top_items,
+            # REQUIRED FOR TEMPLATE
+            "months": range(1, 13),
+            "selected_date": request.GET.get("date", today.isoformat()),
+            "selected_month": int(request.GET.get("month", today.month)),
+            "selected_year": int(request.GET.get("year", today.year)),
+        },
+    )

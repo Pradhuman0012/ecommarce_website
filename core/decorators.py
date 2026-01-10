@@ -1,6 +1,7 @@
 from functools import wraps
 from typing import Callable
 
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import redirect
 
@@ -43,15 +44,13 @@ def permission_required_project(permission: str) -> Callable:
     return decorator
 
 
-from django.core.exceptions import PermissionDenied
-from functools import wraps
-
 def staff_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_staff:
             raise PermissionDenied
         return view(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -61,5 +60,5 @@ def admin_required(view):
         if not request.user.is_superuser:
             raise PermissionDenied
         return view(request, *args, **kwargs)
-    return wrapper
 
+    return wrapper

@@ -1,6 +1,8 @@
 from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
+
 from home.models import Item
 
 
@@ -10,6 +12,7 @@ class CafeConfig(models.Model):
     Stores cafe-level configuration like name and GST.
     Only ONE row should exist.
     """
+
     cafe_name = models.CharField(max_length=200)
     gst_percentage = models.DecimalField(max_digits=5, decimal_places=2)
 
@@ -19,6 +22,7 @@ class CafeConfig(models.Model):
     class Meta:
         verbose_name = "Cafe Configuration"
         verbose_name_plural = "Cafe Configuration"
+
 
 class Bill(models.Model):
     """
@@ -55,16 +59,10 @@ class Bill(models.Model):
         blank=True,
     )
 
-    discount_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0
-    )
-    discount_percent = models.DecimalField(
-        max_digits=5, decimal_places=2, default=0
-    )
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
-    gst_percentage = models.DecimalField(
-        max_digits=5, decimal_places=2
-    )
+    gst_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     bill_pdf_path = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -76,9 +74,11 @@ class Bill(models.Model):
         if not self.bill_number:
             date_str = timezone.now().strftime("%Y%m%d")
 
-            last_bill = Bill.objects.filter(
-                bill_number__startswith=date_str
-            ).order_by("-bill_number").first()
+            last_bill = (
+                Bill.objects.filter(bill_number__startswith=date_str)
+                .order_by("-bill_number")
+                .first()
+            )
 
             if last_bill:
                 last_seq = int(last_bill.bill_number[-4:])
@@ -108,32 +108,20 @@ class BillItem(models.Model):
     """
     Line items inside a bill.
     """
+
     SIZE_CHOICES = (
-            ("S", "Small"),
-            ("M", "Medium"),
-            ("L", "Large"),
-        )
-    
-    bill = models.ForeignKey(
-        Bill,
-        related_name="items",
-        on_delete=models.CASCADE
+        ("S", "Small"),
+        ("M", "Medium"),
+        ("L", "Large"),
     )
 
-    item = models.ForeignKey(
-        Item,
-        on_delete=models.PROTECT
-    )
+    bill = models.ForeignKey(Bill, related_name="items", on_delete=models.CASCADE)
 
-    size = models.CharField(
-        max_length=1,
-        choices=SIZE_CHOICES,
-        default="M"
-    )
+    item = models.ForeignKey(Item, on_delete=models.PROTECT)
 
-    price = models.DecimalField(
-        max_digits=8, decimal_places=2
-    )
+    size = models.CharField(max_length=1, choices=SIZE_CHOICES, default="M")
+
+    price = models.DecimalField(max_digits=8, decimal_places=2)
 
     quantity = models.PositiveIntegerField()
 

@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
-from decimal import Decimal
+
 
 class Station(models.TextChoices):
     KITCHEN = "KITCHEN", "Kitchen"
@@ -32,6 +34,7 @@ class Order(models.Model):
     def __str__(self) -> str:
         return f"Order #{self.id}"
 
+
 class OrderItem(models.Model):
     order = models.ForeignKey(
         Order,
@@ -53,6 +56,7 @@ class OrderItem(models.Model):
 
     def __str__(self) -> str:
         return f"{self.item.name} x{self.quantity}"
+
 
 class Recipe(models.Model):
     order = models.ForeignKey(
@@ -81,6 +85,7 @@ class Recipe(models.Model):
     class Meta:
         unique_together = ("order", "station")
 
+
 class RecipeItem(models.Model):
     recipe = models.ForeignKey(
         Recipe,
@@ -95,33 +100,21 @@ class RecipeItem(models.Model):
     class Meta:
         ordering = ["priority"]
 
+
 class OrderHistory(models.Model):
     """
     Immutable audit snapshot of an order at billing time.
     This table is APPEND-ONLY.
     """
 
-    order = models.ForeignKey(
-        Order,
-        on_delete=models.CASCADE,
-        related_name="history"
-    )
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="history")
 
     # -------- IDENTITY --------
-    bill_number = models.CharField(
-        max_length=30,
-        default="UNKNOWN"
-    )
+    bill_number = models.CharField(max_length=30, default="UNKNOWN")
 
-    customer_name = models.CharField(
-        max_length=100,
-        default="UNKNOWN"
-    )
+    customer_name = models.CharField(max_length=100, default="UNKNOWN")
 
-    customer_phone = models.CharField(
-        max_length=15,
-        default="NA"
-    )
+    customer_phone = models.CharField(max_length=15, default="NA")
 
     # -------- PAYMENT --------
     PAYMENT_MODES = (
@@ -133,7 +126,6 @@ class OrderHistory(models.Model):
         max_length=20,
         choices=PAYMENT_MODES,
         default="CASH",
-
     )
 
     cash_received = models.DecimalField(
@@ -154,45 +146,27 @@ class OrderHistory(models.Model):
 
     # -------- AMOUNTS --------
     subtotal = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00")
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
 
     discount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00")
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
 
-    gst = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00")
-    )
+    gst = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
 
     total_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00")
+        max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
 
     # -------- ITEMS SNAPSHOT --------
-    items_snapshot = models.JSONField(
-        default=list
-    )
+    items_snapshot = models.JSONField(default=list)
 
     # -------- PDF --------
-    bill_pdf_path = models.CharField(
-        max_length=255,
-        blank=True,
-        default=""
-    )
+    bill_pdf_path = models.CharField(max_length=255, blank=True, default="")
 
     # -------- META --------
-    created_at = models.DateTimeField(
-        default=timezone.now
-    )
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         ordering = ["-created_at"]

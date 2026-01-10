@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Bill, BillItem, CafeConfig
 
 # Register your models here.
@@ -16,6 +17,7 @@ class BillItemInline(admin.TabularInline):
         if obj.pk:
             return obj.line_total()
         return "-"
+
     line_total.short_description = "Line Total"
 
 
@@ -50,14 +52,17 @@ class BillAdmin(admin.ModelAdmin):
     # ---------- DISPLAY HELPERS ----------
     def subtotal_display(self, obj):
         return obj.subtotal()
+
     subtotal_display.short_description = "Subtotal"
 
     def gst_amount_display(self, obj):
         return obj.gst_amount()
+
     gst_amount_display.short_description = "GST Amount"
 
     def total_amount_display(self, obj):
         return obj.total_amount()
+
     total_amount_display.short_description = "Total Amount"
 
 

@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import print_recipe, order_history_view, order_history_list_view
+
+from .views import order_history_list_view, order_history_view, print_recipe
 
 app_name = "orders"
 

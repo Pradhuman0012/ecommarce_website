@@ -1,7 +1,8 @@
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
-from .services import authenticate_user, logout_user, _post_login_redirect
+
+from .services import _post_login_redirect, authenticate_user, logout_user
 
 
 def login_view(request: HttpRequest) -> HttpResponse:

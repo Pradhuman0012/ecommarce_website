@@ -1,26 +1,22 @@
-from urllib import request
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from .models import Bill
-from reportlab.lib.pagesizes import mm
 import json
-from reportlab.pdfgen import canvas
-# Create your views here.
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
 from decimal import Decimal
-import uuid
-from .models import Bill, BillItem
+from io import BytesIO
+
+from django.db import transaction
+from django.http import HttpResponse
+
+# Create your views here.
+from django.shortcuts import get_object_or_404, render
+
+from core.decorators import staff_required
 from home.models import Item
 from orders.models import Order, OrderItem
 from orders.service import generate_recipes_for_order
-from django.db import transaction
-from .models import Bill, BillItem, CafeConfig
-from utils.save_pdf import save_pdf_once
 from utils.pdf import draw_bill_pdf
-from io import BytesIO
-from core.decorators import admin_required, staff_required
+from utils.save_pdf import save_pdf_once
+
+from .models import Bill, BillItem, CafeConfig
+
 
 @staff_required
 def create_bill(request):
@@ -28,7 +24,7 @@ def create_bill(request):
 
     if request.method == "POST":
         with transaction.atomic():
-            
+
             customer_name = request.POST.get("customer_name")
             customer_phone = request.POST.get("customer_phone")
             payment_mode = request.POST.get("payment_mode", "UPI")
@@ -39,7 +35,6 @@ def create_bill(request):
             cafe = CafeConfig.objects.first()
             gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
 
-            bill_number = f"BILL-{uuid.uuid4().hex[:8].upper()}"
             items_data = json.loads(request.POST.get("items_payload") or "{}")
 
             subtotal = Decimal("0.00")
@@ -110,8 +105,7 @@ def create_bill(request):
             # 4. APPLY DISCOUNT
             # --------------------
             discount_amount = min(
-                (subtotal * discount_percent) / Decimal("100"),
-                subtotal
+                (subtotal * discount_percent) / Decimal("100"), subtotal
             )
             bill.discount_amount = discount_amount
             bill.save()
@@ -121,7 +115,6 @@ def create_bill(request):
             # --------------------
             generate_recipes_for_order(order)
 
-            
             buffer = BytesIO()
             draw_bill_pdf(bill=bill, output=buffer)
             print("PDF size:", buffer.getbuffer().nbytes)
@@ -129,12 +122,17 @@ def create_bill(request):
                 pdf_buffer=buffer,
                 filename=f"{bill.bill_number}.pdf",
             )
-            return render(request, "billing/auto_print.html", {
-                "bill": bill,
-                "order": order,
-            })
-                        
+            return render(
+                request,
+                "billing/auto_print.html",
+                {
+                    "bill": bill,
+                    "order": order,
+                },
+            )
+
     return render(request, "billing/create_bill.html", {"items": items})
+
 
 @staff_required
 def bill_detail(request, bill_id):
@@ -146,13 +144,17 @@ def bill_detail(request, bill_id):
     gst_amount = (taxable_amount * bill.gst_percentage) / Decimal("100")
     total_amount = taxable_amount + gst_amount
 
-    return render(request, "billing/bill_detail.html", {
-        "bill": bill,
-        "items": items,
-        "subtotal": subtotal,
-        "gst_amount": gst_amount,
-        "total_amount": total_amount,
-    })
+    return render(
+        request,
+        "billing/bill_detail.html",
+        {
+            "bill": bill,
+            "items": items,
+            "subtotal": subtotal,
+            "gst_amount": gst_amount,
+            "total_amount": total_amount,
+        },
+    )
 
 
 @staff_required

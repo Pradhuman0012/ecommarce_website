@@ -1,6 +1,4 @@
-from typing import Iterable
 from .models import Order, Recipe, RecipeItem
-from home.models import Item
 
 
 def generate_recipes_for_order(order: Order) -> None:

@@ -1,10 +1,14 @@
-from django.shortcuts import render, get_object_or_404
+from django.db.models import Q
 from django.http import HttpResponse
-from reportlab.pdfgen import canvas
-from orders.models import Order, OrderHistory
+from django.shortcuts import get_object_or_404, render
 from reportlab.lib.pagesizes import mm
-from .models import Recipe
+from reportlab.pdfgen import canvas
+
 from core.decorators import staff_required
+from orders.models import Order, OrderHistory
+
+from .models import Recipe
+
 
 @staff_required
 def print_recipe(request, recipe_id):
@@ -53,12 +57,10 @@ def print_recipe(request, recipe_id):
 
     return response
 
+
 @staff_required
 def order_history_view(request, order_id):
-    order = get_object_or_404(
-        Order.objects.select_related("bill"),
-        id=order_id
-    )
+    order = get_object_or_404(Order.objects.select_related("bill"), id=order_id)
 
     history = OrderHistory.objects.filter(order=order).order_by("-created_at")
 
@@ -75,22 +77,19 @@ def order_history_view(request, order_id):
         },
     )
 
+
 @staff_required
 def order_history_list_view(request):
-    qs = (
-        Order.objects
-        .select_related("bill")
-        .order_by("-created_at")
-    )
-    print("qs",qs)
+    qs = Order.objects.select_related("bill").order_by("-created_at")
+    print("qs", qs)
     for order in qs:
-        print("order",order)
+        print("order", order)
     q = request.GET.get("q")
     if q:
         qs = qs.filter(
-            Q(customer_name__icontains=q) |
-            Q(id__icontains=q) |
-            Q(bill__bill_number__icontains=q)
+            Q(customer_name__icontains=q)
+            | Q(id__icontains=q)
+            | Q(bill__bill_number__icontains=q)
         )
 
     return render(

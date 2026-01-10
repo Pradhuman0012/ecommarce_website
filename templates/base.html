@@ -12,7 +12,7 @@
   {% block css %}{% endblock css %}
 
   <style>
-      
+
 /* DEFAULT = LIGHT MODE */
 :root {
   --brand-color: #0f172a;
@@ -154,7 +154,7 @@
         color: var(--text-muted);
         border-top: 1px solid var(--border-soft);
       }
-      
+
       /* Select2 theme-safe + searchable */
       .select2-container {
         width: 100% !important;
@@ -373,7 +373,7 @@
           <a class="nav-link" href="/orders/history">Order History</a>
         </li>
         {% endif %}
-        
+
         <!-- BILLING MODULE -->
         {% if user.is_staff or user.is_superuser %}
         <li class="nav-item">
@@ -399,9 +399,9 @@
 
       </ul>
 
-      
-      
-    
+
+
+
       <ul class="navbar-nav ms-auto align-items-center">
 
       {% if user.is_authenticated %}

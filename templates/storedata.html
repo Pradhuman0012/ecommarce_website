@@ -16,7 +16,7 @@
 </div>
 {% else %}
   <div class="container">
-  <form method="post" action="" enctype="multipart/form-data"> 
+  <form method="post" action="" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p}}
       <button type="submit" class="btn btn-success center">Submit</button>

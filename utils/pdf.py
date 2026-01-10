@@ -1,7 +1,8 @@
 # billing/pdf.py
+from decimal import Decimal
+
 from reportlab.lib.pagesizes import mm
 from reportlab.pdfgen import canvas
-from decimal import Decimal
 
 
 def draw_bill_pdf(*, bill, output) -> None:

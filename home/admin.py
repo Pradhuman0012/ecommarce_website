@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Category, Item, ItemSize, ContactMessage
+
+from .models import Category, ContactMessage, Item, ItemSize
 
 
 # ---------- CATEGORY ADMIN ----------

@@ -1,10 +1,8 @@
-
 import datetime
+
 from django import template
+
 register = template.Library()
-
-from django.db.models import Count
-
 
 
 @register.simple_tag

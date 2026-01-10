@@ -27,6 +27,7 @@ def logout_user(request: HttpRequest) -> None:
     """
     logout(request)
 
+
 def _post_login_redirect(user):
     if user.is_superuser:
         return "dashboard:home"

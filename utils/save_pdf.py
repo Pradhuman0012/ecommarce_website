@@ -1,6 +1,7 @@
-from pathlib import Path
-from django.conf import settings
 from io import BytesIO
+from pathlib import Path
+
+from django.conf import settings
 
 
 def save_pdf_once(*, pdf_buffer: BytesIO, filename: str) -> None:

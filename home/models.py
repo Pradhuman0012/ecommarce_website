@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to="category_images/", blank=True, null=True)
@@ -35,7 +36,8 @@ class Item(models.Model):
 
     def __str__(self) -> str:
         return self.name
-    
+
+
 class ItemSize(models.Model):
     SIZE_CHOICES = (
         ("S", "Small"),
@@ -43,11 +45,7 @@ class ItemSize(models.Model):
         ("L", "Large"),
     )
 
-    item = models.ForeignKey(
-        Item,
-        related_name="sizes",
-        on_delete=models.CASCADE
-    )
+    item = models.ForeignKey(Item, related_name="sizes", on_delete=models.CASCADE)
     size = models.CharField(max_length=1, choices=SIZE_CHOICES)
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
