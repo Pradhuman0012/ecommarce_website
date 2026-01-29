@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -36,6 +39,16 @@ class Item(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    def get_price_for_size(self, size: str) -> Decimal:
+        """
+        Return price for a given size.
+        Raises ValidationError if size is invalid.
+        """
+        try:
+            return self.sizes.get(size=size).price
+        except self.sizes.model.DoesNotExist:
+            raise ValidationError(f"Invalid size '{size}' for item '{self.name}'")
 
 
 class ItemSize(models.Model):

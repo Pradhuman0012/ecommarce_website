@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+#  python manage.py runserver 0.0.0.0:8000
 import os
 from pathlib import Path
 
@@ -32,8 +33,11 @@ if not SECRET_KEY:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", ".ngrok.app"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.dev",
+]
 
 # Application definition
 

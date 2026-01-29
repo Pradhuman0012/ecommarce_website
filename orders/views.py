@@ -1,22 +1,14 @@
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
-from reportlab.lib.pagesizes import mm
-from reportlab.pdfgen import canvas
 
 from core.decorators import staff_required
-from orders.models import Order, OrderHistory
-
-from .models import Recipe
+from orders.models import Order, OrderHistory, Recipe
+from utils.pdf import draw_kitchen_pdf
 
 
 @staff_required
 def print_recipe(request, recipe_id):
-    """
-    Prints a single Kitchen or Barista recipe
-    in 80mm thermal format.
-    """
-
     recipe = get_object_or_404(
         Recipe.objects.prefetch_related("items", "order"),
         id=recipe_id,
@@ -25,36 +17,10 @@ def print_recipe(request, recipe_id):
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = "inline"
 
-    width = 80 * mm
-    height = 160 * mm
-
-    p = canvas.Canvas(response, pagesize=(width, height))
-    y = height - 10 * mm
-
-    def line(text: str) -> None:
-        nonlocal y
-        p.drawString(5 * mm, y, text)
-        y -= 5 * mm
-
-    # ---------- HEADER ----------
-    line(f"{recipe.station} ORDER")
-    line("-" * 20)
-    line(f"Order #{recipe.order.id}")
-    line("-" * 20)
-
-    # ---------- ITEMS ----------
-    for item in recipe.items.all():
-        line(f"{item.item_name} x{item.quantity}")
-        if item.notes:
-            line(f"  * {item.notes}")
-
-    # ---------- FOOTER ----------
-    line("-" * 20)
-    line("Thank You")
-
-    p.showPage()
-    p.save()
-
+    draw_kitchen_pdf(
+        recipe=recipe,
+        output=response,
+    )
     return response
 
 

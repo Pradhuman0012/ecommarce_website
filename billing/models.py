@@ -119,7 +119,7 @@ class BillItem(models.Model):
 
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
 
-    size = models.CharField(max_length=1, choices=SIZE_CHOICES, default="M")
+    size = models.CharField(max_length=10, choices=SIZE_CHOICES, default="M")
 
     price = models.DecimalField(max_digits=8, decimal_places=2)
 

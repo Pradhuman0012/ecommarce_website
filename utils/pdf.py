@@ -4,6 +4,8 @@ from decimal import Decimal
 from reportlab.lib.pagesizes import mm
 from reportlab.pdfgen import canvas
 
+from orders.models import Recipe
+
 
 def draw_bill_pdf(*, bill, output) -> None:
     width = 80 * mm
@@ -23,7 +25,8 @@ def draw_bill_pdf(*, bill, output) -> None:
 
     # HEADER
     text("MAHAKAAL THEMES CAFE", bold=True, center=True)
-    text("Mo. 9530303016", center=True)
+    text("Mo. 9530301414", center=True)
+    text("FSSAI: 22226107003714", center=True)
     text("GST No: 08MAQPS9885M1ZX", center=True)
     text("Plot No. 92, Lakhuja Heights", center=True)
     text("Sindhu Nagar, Bhilwara", center=True)
@@ -61,6 +64,55 @@ def draw_bill_pdf(*, bill, output) -> None:
     text(f"TOTAL : Rs {total:.2f}", bold=True)
 
     text("Thank you! Visit Again", center=True)
+
+    p.showPage()
+    p.save()
+
+
+def draw_kitchen_pdf(*, recipe: Recipe, output) -> None:
+    """
+    Generate a thermal kitchen/barista slip.
+    - Station-wise
+    - No prices
+    - Includes notes & priority order
+    """
+
+    width = 80 * mm
+    height = 200 * mm
+
+    p = canvas.Canvas(output, pagesize=(width, height))
+    y = height - 8 * mm
+
+    def text(line: str, *, bold: bool = False, center: bool = False) -> None:
+        nonlocal y
+        p.setFont("Courier-Bold" if bold else "Courier", 9 if bold else 8)
+        if center:
+            p.drawCentredString(width / 2, y, line)
+        else:
+            p.drawString(5 * mm, y, line)
+        y -= 4.5 * mm
+
+    # -------- HEADER --------
+    text("KITCHEN SLIP", bold=True, center=True)
+    text(recipe.station, bold=True, center=True)
+    text("-" * 32)
+
+    text(f"Order ID : {recipe.order_id}")
+    text(f"Time     : {recipe.created_at.strftime('%d-%m-%Y %I:%M %p')}")
+    text("-" * 32)
+
+    # -------- ITEMS --------
+    for item in recipe.items.all().order_by("priority"):
+        text(f"{item.item_name}", bold=True)
+        text(f"Qty : {item.quantity}")
+
+        if item.notes:
+            text(f"Note: {item.notes}")
+
+        text("-" * 32)
+
+    # -------- FOOTER --------
+    text("PREPARE & SERVE", center=True)
 
     p.showPage()
     p.save()

@@ -12,7 +12,7 @@ from core.decorators import staff_required
 from home.models import Item
 from orders.models import Order, OrderItem
 from orders.service import generate_recipes_for_order
-from utils.pdf import draw_bill_pdf
+from utils.pdf import draw_bill_pdf, draw_kitchen_pdf
 from utils.save_pdf import save_pdf_once
 
 from .models import Bill, BillItem, CafeConfig
@@ -21,7 +21,8 @@ from .models import Bill, BillItem, CafeConfig
 @staff_required
 def create_bill(request):
     items = Item.objects.prefetch_related("sizes").filter(is_available=True)
-
+    cafe = CafeConfig.objects.first()
+    gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
     if request.method == "POST":
         with transaction.atomic():
 
@@ -31,9 +32,6 @@ def create_bill(request):
             cash_received = request.POST.get("cash_received")
             change_amount = request.POST.get("change_amount")
             discount_percent = Decimal(request.POST.get("discount_percent") or 0)
-
-            cafe = CafeConfig.objects.first()
-            gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
 
             items_data = json.loads(request.POST.get("items_payload") or "{}")
 
@@ -71,8 +69,8 @@ def create_bill(request):
                 if qty <= 0:
                     continue
 
-                item = Item.objects.get(id=int(data["item_id"]))
-                price = Decimal(str(data["price"]))
+                item = Item.objects.select_related().get(id=int(data["item_id"]))
+                price = item.get_price_for_size(data["size"])
                 priority = int(data.get("priority", 1))
                 notes = data.get("notes", "")
 
@@ -114,14 +112,43 @@ def create_bill(request):
             # 5. GENERATE RECIPES
             # --------------------
             generate_recipes_for_order(order)
+            print("ORDER ID:", order.id)
+            print("ORDER ITEMS:", order.items.count())
+            print("RECIPES COUNT:", order.recipes.count())
+            # --------------------
+            # 6. PRINT CUSTOMER BILL
+            # --------------------
+            bill_buffer = BytesIO()
 
-            buffer = BytesIO()
-            draw_bill_pdf(bill=bill, output=buffer)
-            print("PDF size:", buffer.getbuffer().nbytes)
+            draw_bill_pdf(
+                bill=bill,
+                output=bill_buffer,
+            )
+
             save_pdf_once(
-                pdf_buffer=buffer,
+                pdf_buffer=bill_buffer,
                 filename=f"{bill.bill_number}.pdf",
             )
+
+            bill.bill_pdf_path = f"bills/{bill.bill_number}.pdf"
+            bill.save(update_fields=["bill_pdf_path"])
+
+            # --------------------
+            # 7. PRINT KITCHEN / BARISTA SLIPS
+            # --------------------
+            for recipe in order.recipes.all():
+                recipe_buffer = BytesIO()
+
+                draw_kitchen_pdf(
+                    recipe=recipe,
+                    output=recipe_buffer,
+                )
+
+                save_pdf_once(
+                    pdf_buffer=recipe_buffer,
+                    filename=f"order_{order.id}_{recipe.station}.pdf",
+                )
+
             return render(
                 request,
                 "billing/auto_print.html",
@@ -131,7 +158,14 @@ def create_bill(request):
                 },
             )
 
-    return render(request, "billing/create_bill.html", {"items": items})
+    return render(
+        request,
+        "billing/create_bill.html",
+        {
+            "items": items,
+            "gst_percentage": float(gst_percentage),
+        },
+    )
 
 
 @staff_required

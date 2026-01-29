@@ -23,14 +23,25 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Password</label>
+        <label class="form-label">Password</label>
+
+        <div class="input-group">
           <input
             type="password"
             name="password"
+            id="password"
             class="form-control"
             required
           >
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            onclick="togglePassword()"
+          >
+            👁
+          </button>
         </div>
+      </div>
 
         {% if error %}
           <div class="alert alert-danger py-2">
@@ -49,4 +60,12 @@
 
   </div>
 </div>
+
+<script>
+function togglePassword() {
+  const passwordField = document.getElementById("password");
+  passwordField.type =
+    passwordField.type === "password" ? "text" : "password";
+}
+</script>
 {% endblock body %}
