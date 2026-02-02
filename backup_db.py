@@ -3,6 +3,7 @@ import socket
 import subprocess
 from datetime import datetime
 from pathlib import Path
+import platform
 
 from dotenv import load_dotenv
 
@@ -17,9 +18,10 @@ DB_PASSWORD = os.environ.get("PGPASSWORD")
 DB_HOST = "127.0.0.1"
 DB_PORT = "5432"
 
-# 🔒 FORCE matching pg_dump (PostgreSQL 17)
-PG_DUMP_BIN = "/Library/PostgreSQL/17/bin/pg_dump"
-
+if platform.system() == "Windows":
+    PG_DUMP_BIN = r"C:\Program Files\PostgreSQL\18\bin\pg_dump.exe"
+else:
+    PG_DUMP_BIN = "/Library/PostgreSQL/17/bin/pg_dump"
 
 def get_local_ip() -> str:
     """
