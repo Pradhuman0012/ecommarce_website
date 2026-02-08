@@ -47,9 +47,6 @@ def order_history_view(request, order_id):
 @staff_required
 def order_history_list_view(request):
     qs = Order.objects.select_related("bill").order_by("-created_at")
-    print("qs", qs)
-    for order in qs:
-        print("order", order)
     q = request.GET.get("q")
     if q:
         qs = qs.filter(

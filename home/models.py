@@ -52,18 +52,21 @@ class Item(models.Model):
 
 
 class ItemSize(models.Model):
-    SIZE_CHOICES = (
-        ("S", "Small"),
-        ("M", "Medium"),
-        ("L", "Large"),
-    )
+    class Size(models.TextChoices):
+        SMALL = "SMALL", "Small"
+        MEDIUM = "MEDIUM", "Medium"
+        LARGE = "LARGE", "Large"
+        REGULAR = "REGULAR", "Regular"
+        FULL = "FULL", "Full"
 
     item = models.ForeignKey(Item, related_name="sizes", on_delete=models.CASCADE)
-    size = models.CharField(max_length=1, choices=SIZE_CHOICES)
+    size = models.CharField(max_length=20, choices=Size.choices)
     price = models.DecimalField(max_digits=8, decimal_places=2)
 
     class Meta:
-        unique_together = ("item", "size")
+        constraints = [
+            models.UniqueConstraint(fields=["item", "size"], name="unique_item_size")
+        ]
 
     def __str__(self):
         return f"{self.item.name} ({self.get_size_display()})"

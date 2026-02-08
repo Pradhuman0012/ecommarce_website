@@ -36,3 +36,4 @@ class Command(BaseCommand):
 
 
 # python manage.py load_menu --path home/fixtures/menu_data.json
+# python manage.py load_menu --path home/fixtures/menu_data.json --clear

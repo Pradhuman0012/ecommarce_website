@@ -112,9 +112,7 @@ def create_bill(request):
             # 5. GENERATE RECIPES
             # --------------------
             generate_recipes_for_order(order)
-            print("ORDER ID:", order.id)
-            print("ORDER ITEMS:", order.items.count())
-            print("RECIPES COUNT:", order.recipes.count())
+
             # --------------------
             # 6. PRINT CUSTOMER BILL
             # --------------------

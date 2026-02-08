@@ -2,100 +2,90 @@
   "categories": [
     { "name": "Hot Coffee", "is_active": true },
     { "name": "Cold Coffee", "is_active": true },
-    { "name": "Tea", "is_active": true },
+    { "name": "Frappe", "is_active": true },
     { "name": "Shakes", "is_active": true },
-    { "name": "Snacks", "is_active": true }
+    { "name": "Tea", "is_active": true },
+    { "name": "Maggi", "is_active": true },
+    { "name": "Burgers", "is_active": true },
+    { "name": "Pasta", "is_active": true },
+    { "name": "Fries", "is_active": true },
+    { "name": "Wraps", "is_active": true },
+    { "name": "Sandwich", "is_active": true },
+    { "name": "Pizza", "is_active": true },
+    { "name": "Toast", "is_active": true },
+    { "name": "Chinese", "is_active": true },
+    { "name": "Mocktails", "is_active": true },
+    { "name": "Iced Tea", "is_active": true }
   ],
 
   "items": [
-    {
-      "name": "Hot Flat White",
-      "category": "Hot Coffee",
-      "sizes": { "S": 80, "M": 100, "L": 120 }
-    },
-    {
-      "name": "Cappuccino",
-      "category": "Hot Coffee",
-      "sizes": { "S": 90, "M": 110, "L": 130 }
-    },
-    {
-      "name": "Cafe Latte",
-      "category": "Hot Coffee",
-      "sizes": { "S": 90, "M": 110, "L": 130 }
-    },
-    {
-      "name": "Americano",
-      "category": "Hot Coffee",
-      "sizes": { "S": 70, "M": 90, "L": 110 }
-    },
+    { "name": "Masala Maggi", "category": "Maggi", "sizes": { "REGULAR": 79 } },
+    { "name": "Veg Cheese Maggi", "category": "Maggi", "sizes": { "REGULAR": 99 } },
+    { "name": "Schezwan Maggi", "category": "Maggi", "sizes": { "REGULAR": 119 } },
+    { "name": "Tandoori Maggi", "category": "Maggi", "sizes": { "REGULAR": 129 } },
 
-    {
-      "name": "Cold Coffee",
-      "category": "Cold Coffee",
-      "sizes": { "S": 100, "M": 130, "L": 160 }
-    },
-    {
-      "name": "Cold Coffee with Ice Cream",
-      "category": "Cold Coffee",
-      "sizes": { "S": 130, "M": 160, "L": 190 }
-    },
-    {
-      "name": "Chocolate Cold Coffee",
-      "category": "Cold Coffee",
-      "sizes": { "S": 120, "M": 150, "L": 180 }
-    },
+    { "name": "Aloo Tikki Burger", "category": "Burgers", "sizes": { "REGULAR": 89 } },
+    { "name": "Mexican Burger", "category": "Burgers", "sizes": { "REGULAR": 129 } },
+    { "name": "Paneer Tikka Burger", "category": "Burgers", "sizes": { "REGULAR": 159 } },
 
-    {
-      "name": "Masala Tea",
-      "category": "Tea",
-      "sizes": { "S": 20, "M": 30, "L": 40 }
-    },
-    {
-      "name": "Ginger Tea",
-      "category": "Tea",
-      "sizes": { "S": 20, "M": 30, "L": 40 }
-    },
-    {
-      "name": "Green Tea",
-      "category": "Tea",
-      "sizes": { "S": 30, "M": 40, "L": 50 }
-    },
+    { "name": "Arrabbiata Pasta (Red)", "category": "Pasta", "sizes": { "REGULAR": 179 } },
+    { "name": "Bechamel Pasta (White)", "category": "Pasta", "sizes": { "REGULAR": 199 } },
+    { "name": "Pink Pasta (Mix)", "category": "Pasta", "sizes": { "REGULAR": 209 } },
+    { "name": "Pesto Pasta", "category": "Pasta", "sizes": { "REGULAR": 239 } },
+    { "name": "Mac N Cheese", "category": "Pasta", "sizes": { "REGULAR": 239 } },
+    { "name": "Mac N Cheese Paneer Tikka", "category": "Pasta", "sizes": { "REGULAR": 259 } },
 
-    {
-      "name": "Chocolate Shake",
-      "category": "Shakes",
-      "sizes": { "S": 120, "M": 150, "L": 180 }
-    },
-    {
-      "name": "Strawberry Shake",
-      "category": "Shakes",
-      "sizes": { "S": 120, "M": 150, "L": 180 }
-    },
-    {
-      "name": "Oreo Shake",
-      "category": "Shakes",
-      "sizes": { "S": 140, "M": 170, "L": 200 }
-    },
+    { "name": "Simply Salted Fries", "category": "Fries", "sizes": { "REGULAR": 89 } },
+    { "name": "Peri Peri Fries", "category": "Fries", "sizes": { "REGULAR": 119 } },
+    { "name": "Cheese Fries", "category": "Fries", "sizes": { "REGULAR": 129 } },
 
-    {
-      "name": "Veg Sandwich",
-      "category": "Snacks",
-      "sizes": { "S": 70, "M": 90, "L": 110 }
-    },
-    {
-      "name": "Grilled Sandwich",
-      "category": "Snacks",
-      "sizes": { "S": 90, "M": 110, "L": 130 }
-    },
-    {
-      "name": "French Fries",
-      "category": "Snacks",
-      "sizes": { "S": 70, "M": 90, "L": 110 }
-    },
-    {
-      "name": "Cheese Maggi",
-      "category": "Snacks",
-      "sizes": { "S": 80, "M": 100, "L": 120 }
-    }
+    { "name": "Aloo Tikki Wrap", "category": "Wraps", "sizes": { "REGULAR": 129 } },
+    { "name": "Paneer Tikka Wrap", "category": "Wraps", "sizes": { "REGULAR": 179 } },
+    { "name": "Hummus Falafel Wrap", "category": "Wraps", "sizes": { "REGULAR": 199 } },
+
+    { "name": "Veg Grilled Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 99 } },
+    { "name": "Paneer Tikka Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 159 } },
+    { "name": "Cheese N Corn Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 149 } },
+    { "name": "Bombay Masala Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 139 } },
+
+    { "name": "Cheese Chilli Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
+    { "name": "Cheese Garlic Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
+    { "name": "Pesto Toast", "category": "Toast", "sizes": { "REGULAR": 169 } },
+
+    { "name": "Margherita Pizza", "category": "Pizza", "sizes": { "SMALL": 149, "MEDIUM": 189 } },
+    { "name": "Veg Paradise Pizza", "category": "Pizza", "sizes": { "SMALL": 159, "MEDIUM": 199 } },
+    { "name": "Tandoori Paneer Pizza", "category": "Pizza", "sizes": { "SMALL": 189, "MEDIUM": 249 } },
+    { "name": "Mix Green Pizza", "category": "Pizza", "sizes": { "SMALL": 189, "MEDIUM": 239 } },
+    { "name": "Farm House Pizza", "category": "Pizza", "sizes": { "SMALL": 199, "MEDIUM": 249 } },
+    { "name": "Veg Supreme Pizza", "category": "Pizza", "sizes": { "SMALL": 220, "MEDIUM": 289 } },
+    { "name": "Pesto Pizza", "category": "Pizza", "sizes": { "SMALL": 240, "MEDIUM": 299 } },
+
+    { "name": "Chilli Garlic Noodles", "category": "Chinese", "sizes": { "REGULAR": 179 } },
+    { "name": "Hakka Noodles", "category": "Chinese", "sizes": { "REGULAR": 159 } },
+    { "name": "Schezwan Noodles", "category": "Chinese", "sizes": { "REGULAR": 169 } },
+    { "name": "Chilli Paneer", "category": "Chinese", "sizes": { "REGULAR": 189 } },
+    { "name": "Paneer Peri Peri", "category": "Chinese", "sizes": { "REGULAR": 179 } },
+    { "name": "Crispy Corn", "category": "Chinese", "sizes": { "REGULAR": 140 } },
+    { "name": "Manchurian Dry", "category": "Chinese", "sizes": { "REGULAR": 140 } },
+    { "name": "Manchurian Gravy", "category": "Chinese", "sizes": { "REGULAR": 160 } },
+    { "name": "Fried Rice", "category": "Chinese", "sizes": { "REGULAR": 160 } },
+    { "name": "Honey Chilli Potato", "category": "Chinese", "sizes": { "REGULAR": 150 } },
+    { "name": "Spring Roll", "category": "Chinese", "sizes": { "REGULAR": 160 } },
+    { "name": "Chinese Sizzler", "category": "Chinese", "sizes": { "REGULAR": 399 } },
+    { "name": "Italian Sizzler", "category": "Chinese", "sizes": { "REGULAR": 489 } },
+
+    { "name": "Black Currant Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+    { "name": "Orange Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+    { "name": "Watermelon Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+    { "name": "Blue Lagoon", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+    { "name": "Mint Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+    { "name": "Bubblegum Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
+
+    { "name": "Peach Iced Tea", "category": "Iced Tea", "sizes": { "REGULAR": 139 } },
+    { "name": "Lemon Iced Tea", "category": "Iced Tea", "sizes": { "REGULAR": 118 } },
+
+    { "name": "Masala Tea", "category": "Tea", "sizes": { "REGULAR": 59 } },
+    { "name": "Lemon Tea", "category": "Tea", "sizes": { "REGULAR": 58 } },
+    { "name": "Green Tea", "category": "Tea", "sizes": { "REGULAR": 69 } }
   ]
 }
