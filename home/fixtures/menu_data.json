@@ -3,7 +3,8 @@
     { "name": "Hot Coffee", "is_active": true },
     { "name": "Cold Coffee", "is_active": true },
     { "name": "Frappe", "is_active": true },
-    { "name": "Shakes", "is_active": true },
+    { "name": "Thick Shakes", "is_active": true },
+    { "name": "Iced Coffee", "is_active": true },
     { "name": "Tea", "is_active": true },
     { "name": "Maggi", "is_active": true },
     { "name": "Burgers", "is_active": true },
@@ -14,10 +15,11 @@
     { "name": "Pizza", "is_active": true },
     { "name": "Toast", "is_active": true },
     { "name": "Chinese", "is_active": true },
+    { "name": "Sizzler", "is_active": true },
     { "name": "Mocktails", "is_active": true },
-    { "name": "Iced Tea", "is_active": true }
+    { "name": "Iced Tea", "is_active": true },
+    { "name": "Garlic Bread", "is_active": true }
   ],
-
   "items": [
     { "name": "Masala Maggi", "category": "Maggi", "sizes": { "REGULAR": 79 } },
     { "name": "Veg Cheese Maggi", "category": "Maggi", "sizes": { "REGULAR": 99 } },
@@ -27,6 +29,7 @@
     { "name": "Aloo Tikki Burger", "category": "Burgers", "sizes": { "REGULAR": 89 } },
     { "name": "Mexican Burger", "category": "Burgers", "sizes": { "REGULAR": 129 } },
     { "name": "Paneer Tikka Burger", "category": "Burgers", "sizes": { "REGULAR": 159 } },
+    { "name": "Add On Cheese", "category": "Burgers", "sizes": { "ADDON": 20 } },
 
     { "name": "Arrabbiata Pasta (Red)", "category": "Pasta", "sizes": { "REGULAR": 179 } },
     { "name": "Bechamel Pasta (White)", "category": "Pasta", "sizes": { "REGULAR": 199 } },
@@ -47,10 +50,7 @@
     { "name": "Paneer Tikka Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 159 } },
     { "name": "Cheese N Corn Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 149 } },
     { "name": "Bombay Masala Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 139 } },
-
-    { "name": "Cheese Chilli Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
-    { "name": "Cheese Garlic Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
-    { "name": "Pesto Toast", "category": "Toast", "sizes": { "REGULAR": 169 } },
+    { "name": "Add Cheese", "category": "Sandwich", "sizes": { "ADDON": 20 } },
 
     { "name": "Margherita Pizza", "category": "Pizza", "sizes": { "SMALL": 149, "MEDIUM": 189 } },
     { "name": "Veg Paradise Pizza", "category": "Pizza", "sizes": { "SMALL": 159, "MEDIUM": 199 } },
@@ -59,6 +59,10 @@
     { "name": "Farm House Pizza", "category": "Pizza", "sizes": { "SMALL": 199, "MEDIUM": 249 } },
     { "name": "Veg Supreme Pizza", "category": "Pizza", "sizes": { "SMALL": 220, "MEDIUM": 289 } },
     { "name": "Pesto Pizza", "category": "Pizza", "sizes": { "SMALL": 240, "MEDIUM": 299 } },
+
+    { "name": "Cheese Chilli Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
+    { "name": "Cheese Garlic Toast", "category": "Toast", "sizes": { "REGULAR": 150 } },
+    { "name": "Pesto Toast", "category": "Toast", "sizes": { "REGULAR": 169 } },
 
     { "name": "Chilli Garlic Noodles", "category": "Chinese", "sizes": { "REGULAR": 179 } },
     { "name": "Hakka Noodles", "category": "Chinese", "sizes": { "REGULAR": 159 } },
@@ -71,8 +75,35 @@
     { "name": "Fried Rice", "category": "Chinese", "sizes": { "REGULAR": 160 } },
     { "name": "Honey Chilli Potato", "category": "Chinese", "sizes": { "REGULAR": 150 } },
     { "name": "Spring Roll", "category": "Chinese", "sizes": { "REGULAR": 160 } },
-    { "name": "Chinese Sizzler", "category": "Chinese", "sizes": { "REGULAR": 399 } },
-    { "name": "Italian Sizzler", "category": "Chinese", "sizes": { "REGULAR": 489 } },
+
+    { "name": "Chinese Sizzler", "category": "Sizzler", "sizes": { "REGULAR": 399 } },
+    { "name": "Italian Sizzler", "category": "Sizzler", "sizes": { "REGULAR": 489 } },
+
+    { "name": "Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 89 } },
+    { "name": "Irish Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Hazelnut Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Caramel Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Tiramisu Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Nutella Cappuccino", "category": "Hot Coffee", "sizes": { "REGULAR": 149 } },
+    { "name": "Cafe Latte", "category": "Hot Coffee", "sizes": { "REGULAR": 109 } },
+    { "name": "Cafe Mocha", "category": "Hot Coffee", "sizes": { "REGULAR": 119 } },
+    { "name": "Hot Chocolate", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
+
+    { "name": "Cold Coffee Mini", "category": "Cold Coffee", "sizes": { "REGULAR": 99 } },
+    { "name": "Cold Coffee Medium", "category": "Cold Coffee", "sizes": { "REGULAR": 129 } },
+
+    { "name": "Iced Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 99 } },
+    { "name": "Iced Caramel Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Iced Irish Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Iced Hazelnut Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Iced Tiramisu Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 129 } },
+
+    { "name": "Strawberry Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 149 } },
+    { "name": "Oreo Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 169 } },
+    { "name": "KitKat Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 189 } },
+    { "name": "Nutella Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 189 } },
+    { "name": "Biscoff Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 199 } },
+    { "name": "Brownie Shake", "category": "Thick Shakes", "sizes": { "REGULAR": 199 } },
 
     { "name": "Black Currant Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
     { "name": "Orange Mojito", "category": "Mocktails", "sizes": { "REGULAR": 159 } },
@@ -86,6 +117,9 @@
 
     { "name": "Masala Tea", "category": "Tea", "sizes": { "REGULAR": 59 } },
     { "name": "Lemon Tea", "category": "Tea", "sizes": { "REGULAR": 58 } },
-    { "name": "Green Tea", "category": "Tea", "sizes": { "REGULAR": 69 } }
+    { "name": "Green Tea", "category": "Tea", "sizes": { "REGULAR": 69 } },
+
+    { "name": "Corn N Cheese Stuffed Garlic Bread", "category": "Garlic Bread", "sizes": { "REGULAR": 140 } },
+    { "name": "Paneer Tikka Stuffed Garlic Bread", "category": "Garlic Bread", "sizes": { "REGULAR": 160 } }
   ]
 }
