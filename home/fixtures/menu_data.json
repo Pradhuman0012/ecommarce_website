@@ -55,7 +55,7 @@
     { "name": "Margherita Pizza", "category": "Pizza", "sizes": { "SMALL": 149, "MEDIUM": 189 } },
     { "name": "Veg Paradise Pizza", "category": "Pizza", "sizes": { "SMALL": 159, "MEDIUM": 199 } },
     { "name": "Tandoori Paneer Pizza", "category": "Pizza", "sizes": { "SMALL": 189, "MEDIUM": 249 } },
-    { "name": "Mix Green Pizza", "category": "Pizza", "sizes": { "SMALL": 189, "MEDIUM": 239 } },
+    { "name": "Max Green Pizza", "category": "Pizza", "sizes": { "SMALL": 189, "MEDIUM": 239 } },
     { "name": "Farm House Pizza", "category": "Pizza", "sizes": { "SMALL": 199, "MEDIUM": 249 } },
     { "name": "Veg Supreme Pizza", "category": "Pizza", "sizes": { "SMALL": 220, "MEDIUM": 289 } },
     { "name": "Pesto Pizza", "category": "Pizza", "sizes": { "SMALL": 240, "MEDIUM": 299 } },
