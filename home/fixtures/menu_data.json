@@ -46,6 +46,42 @@
     { "name": "Paneer Tikka Wrap", "category": "Wraps", "sizes": { "REGULAR": 179 } },
     { "name": "Hummus Falafel Wrap", "category": "Wraps", "sizes": { "REGULAR": 199 } },
 
+    {
+      "name": "Hazelnut Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 129, "MEDIUM": 159 }
+    },
+    {
+      "name": "Caramel Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 139, "MEDIUM": 169 }
+    },
+    {
+      "name": "Irish Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 149, "MEDIUM": 179 }
+    },
+    {
+      "name": "Java Chip Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 149, "MEDIUM": 179 }
+    },
+    {
+      "name": "Oreo Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 139, "MEDIUM": 179 }
+    },
+    {
+      "name": "Brownie Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 159, "MEDIUM": 199 }
+    },
+    {
+      "name": "Biscoff Frappe",
+      "category": "Frappe",
+      "sizes": { "SMALL": 179, "MEDIUM": 219 }
+    },
+
     { "name": "Veg Grilled Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 99 } },
     { "name": "Paneer Tikka Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 159 } },
     { "name": "Cheese N Corn Sandwich", "category": "Sandwich", "sizes": { "REGULAR": 149 } },
@@ -89,8 +125,7 @@
     { "name": "Cafe Mocha", "category": "Hot Coffee", "sizes": { "REGULAR": 119 } },
     { "name": "Hot Chocolate", "category": "Hot Coffee", "sizes": { "REGULAR": 129 } },
 
-    { "name": "Cold Coffee Mini", "category": "Cold Coffee", "sizes": { "REGULAR": 99 } },
-    { "name": "Cold Coffee Medium", "category": "Cold Coffee", "sizes": { "REGULAR": 129 } },
+    { "name": "Cold Coffee Mini", "category": "Cold Coffee", "sizes": { "SMALL": 99, "MEDIUM": 129 } },
 
     { "name": "Iced Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 99 } },
     { "name": "Iced Caramel Coffee", "category": "Iced Coffee", "sizes": { "REGULAR": 129 } },
