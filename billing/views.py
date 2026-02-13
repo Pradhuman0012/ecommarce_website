@@ -123,18 +123,30 @@ def create_bill(request):
                 output=bill_buffer,
             )
 
+            bill_filename = f"{bill.bill_number}.pdf"
+
             save_pdf_once(
                 pdf_buffer=bill_buffer,
-                filename=f"{bill.bill_number}.pdf",
+                filename=bill_filename,
             )
 
-            bill.bill_pdf_path = f"bills/{bill.bill_number}.pdf"
+            bill_relative_path = f"bills/{bill_filename}"
+
+            bill.bill_pdf_path = bill_relative_path
             bill.save(update_fields=["bill_pdf_path"])
 
+            # 🧾 SEND TO USB PRINTER
+            send_to_printer(
+                file_relative_path=bill_relative_path,
+                printer_name="POS-80C USB"
+            )
+
+
             # --------------------
-            # 7. PRINT KITCHEN / BARISTA SLIPS
+            # 7. PRINT KITCHEN SLIPS
             # --------------------
             for recipe in order.recipes.all():
+
                 recipe_buffer = BytesIO()
 
                 draw_kitchen_pdf(
@@ -142,20 +154,21 @@ def create_bill(request):
                     output=recipe_buffer,
                 )
 
+                recipe_filename = f"order_{order.id}_{recipe.station}.pdf"
+
                 save_pdf_once(
                     pdf_buffer=recipe_buffer,
-                    filename=f"order_{order.id}_{recipe.station}.pdf",
+                    filename=recipe_filename,
                 )
 
-            return render(
-                request,
-                "billing/auto_print.html",
-                {
-                    "bill": bill,
-                    "order": order,
-                },
-            )
+                recipe_relative_path = f"bills/{recipe_filename}"
 
+                # 🍳 Send to BT printer
+                send_to_printer(
+                    file_relative_path=recipe_relative_path,
+                    printer_name="POS-80C BT"
+                )
+    
     return render(
         request,
         "billing/create_bill.html",
@@ -164,6 +177,9 @@ def create_bill(request):
             "gst_percentage": float(gst_percentage),
         },
     )
+
+import time
+
 
 
 @staff_required
@@ -187,8 +203,7 @@ def bill_detail(request, bill_id):
             "total_amount": total_amount,
         },
     )
-
-
+ 
 @staff_required
 def bill_pdf(request, bill_id):
     bill = get_object_or_404(Bill, id=bill_id)
@@ -198,3 +213,30 @@ def bill_pdf(request, bill_id):
 
     draw_bill_pdf(bill=bill, output=response)
     return response
+
+import os
+import win32print
+import win32api
+from django.conf import settings
+
+
+def send_to_printer(file_relative_path, printer_name):
+    file_path = os.path.join(settings.MEDIA_ROOT, file_relative_path)
+
+    if not os.path.exists(file_path):
+        print("File not found:", file_path)
+        return
+
+    # Set printer
+    win32print.SetDefaultPrinter(printer_name)
+
+    # Send to printer
+    win32api.ShellExecute(
+        0,
+        "print",
+        file_path,
+        None,
+        ".",
+        0
+    )
+    

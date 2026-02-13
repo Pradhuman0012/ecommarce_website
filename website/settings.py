@@ -151,3 +151,20 @@ LOGOUT_REDIRECT_URL = "/"
 
 # added manually
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+
+import socket
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+    return ip
+
+
+ip = get_local_ip()
+print(f"\nStarting development server at http://{ip}:8000/\n") 
+
