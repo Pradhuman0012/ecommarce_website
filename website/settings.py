@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 #  python manage.py runserver 0.0.0.0:8000
 import os
+import socket
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -124,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 
@@ -153,8 +154,6 @@ LOGOUT_REDIRECT_URL = "/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 
-import socket
-
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -166,5 +165,4 @@ def get_local_ip():
 
 
 ip = get_local_ip()
-print(f"\nStarting development server at http://{ip}:8000/\n") 
-
+print(f"\nStarting development server at http://{ip}:8000/\n")

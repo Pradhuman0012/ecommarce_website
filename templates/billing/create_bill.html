@@ -382,8 +382,13 @@
           </div>
 
           <div class="d-flex justify-content-between mb-2">
-            <span>GST ({{ gst_percentage }})</span>
-            <span class="fw-bold">₹ <span id="gst">0.00</span></span>
+            <span>CGST ({{ cgst_percentage }}%)</span>
+            <span class="fw-bold">₹ <span id="cgst_val">0.00</span></span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>SGST ({{ sgst_percentage }}%)</span>
+            <span class="fw-bold">₹ <span id="sgst_val">0.00</span></span>
           </div>
 
           <hr>
@@ -414,6 +419,8 @@
 (function () {
   window.bill = {};
   const GST_PERCENTAGE = Number("{{ gst_percentage }}");
+  const CGST_PERCENTAGE = Number("{{ cgst_percentage }}");
+  const SGST_PERCENTAGE = Number("{{ sgst_percentage }}");
 
   function init() {
     if (typeof jQuery === "undefined") {
@@ -560,13 +567,24 @@
     const discountPercent = +$("#discount").val() || 0;
     const discountAmount = subtotal * discountPercent / 100;
     const taxable = Math.max(subtotal - discountAmount, 0);
-    const gst = taxable * GST_PERCENTAGE / 100;
+
+    const cgstRate = Number("{{ cgst_percentage }}");
+    const sgstRate = Number("{{ sgst_percentage }}");
+
+    const cgstAmount = taxable * cgstRate / 100;
+    const sgstAmount = taxable * sgstRate / 100;
+    const exactTotal = taxable + cgstAmount + sgstAmount;
+
+
+    // Rounded Total (No decimals)
+    const grandTotal = Math.round(exactTotal);
 
     $("#subtotal").text(subtotal.toFixed(2));
     $("#discount-amount").text(discountAmount.toFixed(2));
-    $("#gst").text(gst.toFixed(2));
-    $("#grand-total").text((taxable + gst).toFixed(2));
-    $("#grand-total-clone").text((taxable + gst).toFixed(2));
+    $("#cgst_val").text(cgstAmount.toFixed(2));
+    $("#sgst_val").text(sgstAmount.toFixed(2));
+    $("#grand-total").text(grandTotal.toFixed(2));
+    $("#grand-total-clone").text(grandTotal.toFixed(2));
 
     if ($("#payment_mode").val() === "CASH") {
       $("#cashReceived").trigger("input");

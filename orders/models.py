@@ -18,7 +18,7 @@ class Order(models.Model):
         blank=True,
     )
     customer_name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Status(models.TextChoices):
         NEW = "NEW", "New"
@@ -80,7 +80,7 @@ class Recipe(models.Model):
         default=Status.NEW,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         unique_together = ("order", "station")

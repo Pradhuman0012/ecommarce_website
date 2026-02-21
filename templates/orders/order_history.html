@@ -82,8 +82,11 @@
     </div>
     <div class="d-flex gap-2">
       {% if order.bill %}
-        <a href="{% url 'billing:bill_pdf' order.bill.id %}" target="_blank" class="btn btn-accent fw-bold shadow-sm">
+        <a href="{% url 'billing:bill_pdf' order.bill.id %}" target="_blank" class="btn btn-primary fw-bold shadow-sm">
           <i class="bi bi-printer"></i> PRINT INVOICE
+        </a>
+        <a href="{% url 'billing:kitchen_pdf' order.id %}" target="_blank" class="btn btn-secondary fw-bold shadow-sm">
+            PRINT KOT SLIP
         </a>
       {% endif %}
     </div>

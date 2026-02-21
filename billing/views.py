@@ -27,6 +27,9 @@ def create_bill(request):
     items = Item.objects.prefetch_related("sizes").filter(is_available=True)
     cafe = CafeConfig.objects.first()
     gst_percentage = cafe.gst_percentage if cafe else Decimal("0")
+    cgst_percentage = gst_percentage / Decimal("2")
+    sgst_percentage = gst_percentage / Decimal("2")
+
     if request.method == "POST":
         with transaction.atomic():
 
@@ -175,7 +178,8 @@ def create_bill(request):
         "billing/create_bill.html",
         {
             "items": items,
-            "gst_percentage": float(gst_percentage),
+            "cgst_percentage": cgst_percentage,
+            "sgst_percentage": sgst_percentage,
         },
     )
 
@@ -188,6 +192,9 @@ def bill_detail(request, bill_id):
     subtotal = sum(i.line_total() for i in items)
     taxable_amount = subtotal - bill.discount_amount
     gst_amount = (taxable_amount * bill.gst_percentage) / Decimal("100")
+    gst_split_rate = bill.gst_percentage / Decimal("2")
+    cgst_amount = (taxable_amount * gst_split_rate) / Decimal("100")
+    sgst_amount = (taxable_amount * gst_split_rate) / Decimal("100")
     total_amount = taxable_amount + gst_amount
 
     return render(
@@ -197,7 +204,8 @@ def bill_detail(request, bill_id):
             "bill": bill,
             "items": items,
             "subtotal": subtotal,
-            "gst_amount": gst_amount,
+            "cgst_amount": cgst_amount,
+            "sgst_amount": sgst_amount,
             "total_amount": total_amount,
         },
     )
@@ -211,6 +219,27 @@ def bill_pdf(request, bill_id):
     response["Content-Disposition"] = f'inline; filename="{bill.bill_number}.pdf"'
 
     draw_bill_pdf(bill=bill, output=response)
+    return response
+
+
+@staff_required
+def kitchen_pdf(request, order_id):
+    # Order ko find karein
+    order = get_object_or_404(Order, id=order_id)
+
+    # Ek order mein kai recipes (stations) ho sakti hain
+    # Hum saari recipes ko ek hi PDF mein ya alag-alag dikha sakte hain.
+    # Filhal ye view pehli available recipe generate karega:
+    recipe = order.recipes.first()
+
+    if not recipe:
+        return HttpResponse("No kitchen slip available for this order.", status=404)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="KOT_{order.id}.pdf"'
+
+    # Aapka draw_kitchen_pdf function call karein
+    draw_kitchen_pdf(recipe=recipe, output=response)
     return response
 
 
