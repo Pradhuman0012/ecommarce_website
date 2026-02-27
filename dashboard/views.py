@@ -85,7 +85,7 @@ def dashboard_home(request):
         BillItem.objects.filter(bill__in=bills)
         .values("item__name")
         .annotate(qty=Sum("quantity"), revenue=Sum(revenue_expr))
-        .order_by("-qty")[:5]
+        .order_by("-qty")
     )
 
     return render(
