@@ -481,7 +481,10 @@
     const itemName = $("#itemSelect option:selected").text().trim();
     const sizeSelect = document.getElementById("itemSize");
     const size = sizeSelect.value;
-    const sizeLabel = sizeSelect.options[sizeSelect.selectedIndex]?.text.split("(")[0].trim();
+
+    const sizeLabel =
+      sizeSelect.options[sizeSelect.selectedIndex]?.text.split("(")[0].trim();
+
     const price = parseFloat($("#itemSize option:selected").data("price"));
     const qty = parseInt($("#itemQty").val(), 10);
     const notes = $("#itemNotes").val().trim();
@@ -491,12 +494,12 @@
       return;
     }
 
-    const key = `${itemId}_${size}`;
+    // 🔥 Include notes in key (normalized)
+    const normalizedNotes = notes.toLowerCase().trim();
+    const key = `${itemId}_${size}_${normalizedNotes}`;
+
     if (bill[key]) {
       bill[key].qty += qty;
-      if (notes) {
-        bill[key].notes = notes;
-      }
     } else {
       bill[key] = {
         item_id: itemId,
@@ -508,12 +511,13 @@
         notes
       };
     }
-    renderBill();
-    $("#itemNotes").val("");
-    $("#itemSelect").val(null).trigger("change").focus();
-    $("#itemQty").val(1);
 
-  };
+  renderBill();
+
+  $("#itemNotes").val("");
+  $("#itemSelect").val(null).trigger("change").focus();
+  $("#itemQty").val(1);
+};
 
   window.updateQty = function (key, val) {
     bill[key].qty = parseInt(val, 10) || 1;
