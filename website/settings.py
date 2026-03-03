@@ -169,5 +169,5 @@ ip = get_local_ip()
 print(f"\nStarting development server at http://{ip}:8000/\n")
 
 
-GOOGLE_SERVICE_ACCOUNT_FILE = BASE_DIR / "credentials.json"
-GOOGLE_SHEET_ID = "1AMBuQTciSFwU7Ev3hPvmFCSQaQJh5bYDxPf2yZZnvVU"
+GOOGLE_SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_SERVICE_ACCOUNT_FILE")
+GOOGLE_SHEET_ID = os.getenv("GOOGLE_SHEET_ID")
