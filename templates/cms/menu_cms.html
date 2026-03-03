@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Menu CMS{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Menu CMS</h4>
+        <small style="color: var(--text-muted);">
+            Manage Google Sheet Data
+        </small>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+<div class="card-body p-0">
+
+<div class="table-responsive cms-wrapper">
+<table class="table align-middle mb-0 cms-table">
+    <thead>
+        <tr>
+            {% for h in headers %}
+                <th class="text-nowrap">{{ h }}</th>
+            {% endfor %}
+            <th width="110" class="text-center">Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for row_number, row in data %}
+        <tr data-row="{{ row_number }}">
+            {% for cell in row %}
+                <td>
+                    <input type="text"
+                           class="form-control form-control-sm cms-input"
+                           value="{{ cell }}">
+                </td>
+            {% endfor %}
+            <td class="text-center">
+                <button class="btn btn-sm btn-accent save-btn px-3">
+                    Save
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<style>
+
+.cms-wrapper {
+    max-height: 75vh;
+}
+
+/* Table */
+.cms-table {
+    background: var(--bg-card);
+    color: var(--text-main);
+}
+
+.cms-table thead th {
+    background: var(--bg-soft);
+    color: var(--text-muted);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.cms-table tbody tr {
+    border-bottom: 1px solid var(--border-soft);
+    transition: background 0.2s ease;
+}
+
+.cms-table tbody tr:hover {
+    background: var(--bg-soft);
+}
+
+/* Inputs */
+.cms-input {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-soft) !important;
+}
+
+.cms-input:focus {
+    background: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 1px var(--accent) !important;
+    outline: none;
+}
+
+/* Button */
+.save-btn {
+    transition: 0.2s ease;
+}
+
+</style>
+
+
+<script>
+document.querySelectorAll(".save-btn").forEach(btn => {
+
+    btn.addEventListener("click", async function() {
+
+        const row = this.closest("tr");
+        const rowNumber = parseInt(row.dataset.row);
+        const inputs = row.querySelectorAll("input");
+
+        if (!confirm("Are you sure you want to update this row?")) return;
+
+        this.disabled = true;
+        this.innerText = "Saving...";
+
+        const values = Array.from(inputs).map(i => i.value);
+
+        await fetch("", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                row: rowNumber,
+                values: JSON.stringify(values)
+            })
+        });
+
+        this.innerText = "Saved";
+        this.classList.replace("btn-accent", "btn-success");
+
+        setTimeout(() => {
+            this.innerText = "Save";
+            this.classList.replace("btn-success", "btn-accent");
+            this.disabled = false;
+        }, 800);
+
+    });
+
+});
+</script>
+
+{% endblock %}

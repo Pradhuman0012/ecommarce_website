@@ -11,6 +11,11 @@ git pull origin main
 echo Taking DB backup...
 python backup_db.py
 
+
+REM Install required packages
+pip install -r requirements.txt
+
+
 echo Applying database changes...
 python manage.py makemigrations
 python manage.py migrate

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "billing",
     "dashboard",
     "orders",
+    "cms",
 ]
 
 MIDDLEWARE = [
@@ -166,3 +167,7 @@ def get_local_ip():
 
 ip = get_local_ip()
 print(f"\nStarting development server at http://{ip}:8000/\n")
+
+
+GOOGLE_SERVICE_ACCOUNT_FILE = BASE_DIR / "credentials.json"
+GOOGLE_SHEET_ID = "1AMBuQTciSFwU7Ev3hPvmFCSQaQJh5bYDxPf2yZZnvVU"

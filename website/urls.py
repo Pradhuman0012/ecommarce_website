@@ -30,4 +30,5 @@ urlpatterns = [
     path("billing/", include("billing.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("orders/", include("orders.urls")),
+    path("cms/", include("cms.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
