@@ -4,6 +4,7 @@
 {% block body %}
 <div class="container-fluid py-4">
 
+<!-- HEADER -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold mb-1">Menu CMS</h4>
@@ -11,17 +12,58 @@
             Manage Google Sheet Data
         </small>
     </div>
+
+    <button class="btn btn-accent btn-sm" id="toggleCreateBtn">
+        + New Entry
+    </button>
 </div>
 
+
+<!-- CREATE SECTION -->
+<div class="card shadow-sm border-0 mb-4 d-none" id="createSection">
+<div class="card-body p-4">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="fw-bold mb-0">Create New Entry</h5>
+    <button class="btn btn-sm btn-outline-secondary" id="closeCreateBtn">
+        Cancel
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for h in headers %}
+    <div class="col-lg-3 col-md-4">
+        <label class="form-label small text-muted mb-1">
+            {{ h }} <span class="text-danger">*</span>
+        </label>
+        <input type="text"
+               class="form-control cms-input create-input"
+               placeholder="Enter {{ h }}"
+               required>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-4 text-end">
+    <button class="btn btn-success px-4" id="createEntryBtn">
+        Create Entry
+    </button>
+</div>
+
+</div>
+</div>
+
+
+<!-- TABLE -->
 <div class="card shadow-sm border-0">
 <div class="card-body p-0">
 
-<div class="table-responsive cms-wrapper">
-<table class="table align-middle mb-0 cms-table">
-    <thead>
+<div class="table-responsive" style="max-height:70vh;">
+<table class="table align-middle mb-0">
+    <thead style="background:var(--bg-soft); position:sticky; top:0;">
         <tr>
             {% for h in headers %}
-                <th class="text-nowrap">{{ h }}</th>
+                <th class="text-nowrap">{{ h }} *</th>
             {% endfor %}
             <th width="110" class="text-center">Action</th>
         </tr>
@@ -33,8 +75,9 @@
             {% for cell in row %}
                 <td>
                     <input type="text"
-                           class="form-control form-control-sm cms-input"
-                           value="{{ cell }}">
+                           class="form-control form-control-sm cms-input edit-input"
+                           value="{{ cell }}"
+                           required>
                 </td>
             {% endfor %}
             <td class="text-center">
@@ -54,37 +97,8 @@
 
 </div>
 
+
 <style>
-
-.cms-wrapper {
-    max-height: 75vh;
-}
-
-/* Table */
-.cms-table {
-    background: var(--bg-card);
-    color: var(--text-main);
-}
-
-.cms-table thead th {
-    background: var(--bg-soft);
-    color: var(--text-muted);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    border-bottom: 1px solid var(--border-soft);
-}
-
-.cms-table tbody tr {
-    border-bottom: 1px solid var(--border-soft);
-    transition: background 0.2s ease;
-}
-
-.cms-table tbody tr:hover {
-    background: var(--bg-soft);
-}
-
-/* Inputs */
 .cms-input {
     background: var(--bg-card) !important;
     color: var(--text-main) !important;
@@ -92,36 +106,68 @@
 }
 
 .cms-input:focus {
-    background: var(--bg-card) !important;
-    color: var(--text-main) !important;
     border-color: var(--accent) !important;
-    box-shadow: 0 0 0 1px var(--accent) !important;
+    box-shadow: 0 0 0 2px rgba(129,134,74,0.15) !important;
     outline: none;
 }
 
-/* Button */
-.save-btn {
-    transition: 0.2s ease;
+.input-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 2px rgba(220,53,69,0.15) !important;
 }
-
 </style>
 
 
 <script>
+
+// Toggle Create Section
+document.getElementById("toggleCreateBtn").addEventListener("click", () => {
+    document.getElementById("createSection").classList.remove("d-none");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.getElementById("closeCreateBtn").addEventListener("click", () => {
+    document.getElementById("createSection").classList.add("d-none");
+});
+
+
+// Helper Validation Function
+function validateInputs(inputs) {
+    let valid = true;
+
+    inputs.forEach(input => {
+        input.classList.remove("input-error");
+
+        if (input.value.trim() === "") {
+            input.classList.add("input-error");
+            valid = false;
+        }
+    });
+
+    return valid;
+}
+
+
+// UPDATE ROW
 document.querySelectorAll(".save-btn").forEach(btn => {
 
     btn.addEventListener("click", async function() {
 
         const row = this.closest("tr");
         const rowNumber = parseInt(row.dataset.row);
-        const inputs = row.querySelectorAll("input");
+        const inputs = row.querySelectorAll(".edit-input");
 
-        if (!confirm("Are you sure you want to update this row?")) return;
+        if (!validateInputs(inputs)) {
+            alert("All fields are mandatory.");
+            return;
+        }
+
+        if (!confirm("Update this row?")) return;
 
         this.disabled = true;
         this.innerText = "Saving...";
 
-        const values = Array.from(inputs).map(i => i.value);
+        const values = Array.from(inputs).map(i => i.value.trim());
 
         await fetch("", {
             method: "POST",
@@ -130,6 +176,7 @@ document.querySelectorAll(".save-btn").forEach(btn => {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: new URLSearchParams({
+                action: "update",
                 row: rowNumber,
                 values: JSON.stringify(values)
             })
@@ -146,6 +193,36 @@ document.querySelectorAll(".save-btn").forEach(btn => {
 
     });
 
+});
+
+
+// CREATE ENTRY
+document.getElementById("createEntryBtn").addEventListener("click", async function(){
+
+    const inputs = document.querySelectorAll(".create-input");
+
+    if (!validateInputs(inputs)) {
+        alert("All fields are mandatory.");
+        return;
+    }
+
+    if (!confirm("Create new entry?")) return;
+
+    const values = Array.from(inputs).map(i => i.value.trim());
+
+    await fetch("", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            action: "create",
+            values: JSON.stringify(values)
+        })
+    });
+
+    location.reload();
 });
 </script>
 
