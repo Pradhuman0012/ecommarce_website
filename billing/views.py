@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from core.decorators import staff_required
 from home.models import Category, Item
-from orders.models import Order, OrderItem, Table
+from orders.models import Order, OrderHistory, OrderItem, Table
 from orders.service import generate_recipes_for_order
 from utils.pdf import draw_bill_pdf, draw_kitchen_pdf
 from utils.save_pdf import save_pdf_once
@@ -118,39 +118,16 @@ def create_bill(request):
             # --------------------
             # 5. GENERATE RECIPES
             # --------------------
-            generate_recipes_for_order(order)
+            unsent_items = order.items.filter(is_sent_to_kitchen=False)
 
-            # --------------------
-            # 6. PRINT CUSTOMER BILL
-            # --------------------
-            bill_buffer = BytesIO()
+            recipes = generate_recipes_for_order(order, items=unsent_items)
 
-            draw_bill_pdf(
-                bill=bill,
-                output=bill_buffer,
-            )
-
-            bill_filename = f"{bill.bill_number}.pdf"
-
-            save_pdf_once(
-                pdf_buffer=bill_buffer,
-                filename=bill_filename,
-            )
-
-            bill_relative_path = f"bills/{bill_filename}"
-
-            bill.bill_pdf_path = bill_relative_path
-            bill.save(update_fields=["bill_pdf_path"])
-
-            # 🧾 SEND TO USB PRINTER
-            send_to_printer(
-                file_relative_path=bill_relative_path, printer_name="POS-80C USB"
-            )
+            unsent_items.update(is_sent_to_kitchen=True)
 
             # --------------------
             # 7. PRINT KITCHEN SLIPS
             # --------------------
-            for recipe in order.recipes.all():
+            for recipe in recipes:
 
                 recipe_buffer = BytesIO()
 
@@ -167,11 +144,7 @@ def create_bill(request):
                 )
 
                 recipe_relative_path = f"bills/{recipe_filename}"
-                send_to_printer(
-                    file_relative_path=recipe_relative_path, printer_name="POS-80C BT"
-                )
 
-                # 🍳 Send to BT printer
                 send_to_printer(
                     file_relative_path=recipe_relative_path, printer_name="POS-80C BT"
                 )
@@ -333,12 +306,10 @@ def table_order_view(request):
                     created_items.append(oi)
 
                 # create recipes
-                generate_recipes_for_order(order)
-
-                # only unsent items
                 unsent_items = order.items.filter(is_sent_to_kitchen=False)
 
                 if unsent_items.exists():
+
                     recipes = generate_recipes_for_order(order, items=unsent_items)
 
                     for recipe in recipes:
@@ -350,7 +321,8 @@ def table_order_view(request):
                         recipe_filename = f"KOT_{order.id}_{recipe.station}.pdf"
 
                         save_pdf_once(
-                            pdf_buffer=recipe_buffer, filename=recipe_filename
+                            pdf_buffer=recipe_buffer,
+                            filename=recipe_filename,
                         )
 
                         recipe_relative_path = f"bills/{recipe_filename}"
@@ -391,9 +363,14 @@ def table_order_view(request):
 
                 # Step A: Purane (Already served) items add karein
                 for order in pending_orders:
-                    for ot in order.items.all():
+
+                    items_snapshot = []
+
+                    for ot in order.items.select_related("item"):
+
                         price = ot.item.get_price_for_size(ot.size)
                         subtotal += price * ot.quantity
+
                         BillItem.objects.create(
                             bill=bill,
                             item=ot.item,
@@ -401,9 +378,37 @@ def table_order_view(request):
                             quantity=ot.quantity,
                             price=price,
                         )
+
+                        items_snapshot.append(
+                            {
+                                "item_name": ot.item.name,
+                                "quantity": ot.quantity,
+                                "size": ot.size,
+                                "price": str(price),
+                                "notes": ot.notes,
+                                "priority": ot.priority,
+                            }
+                        )
+
                     order.bill = bill
                     order.is_billed = True
                     order.save()
+
+                    OrderHistory.objects.create(
+                        order=order,
+                        bill_number=bill.bill_number,
+                        customer_name=bill.customer_name,
+                        customer_phone=bill.customer_phone,
+                        payment_mode=bill.payment_mode,
+                        subtotal=0,  # will override in view
+                        discount=bill.discount_amount,
+                        gst=0,
+                        total_amount=0,
+                        cash_received=bill.cash_received,
+                        change_returned=bill.change_returned,
+                        bill_pdf_path=bill.bill_pdf_path or "",
+                        items_snapshot=items_snapshot,
+                    )
 
                 # Step B: Naye items (Screen se direct bill)
                 for key, data in items_data.items():

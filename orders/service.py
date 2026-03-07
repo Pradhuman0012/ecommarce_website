@@ -1,18 +1,18 @@
-from .models import Order, Recipe, RecipeItem
+from .models import Recipe, RecipeItem
 
 
-def generate_recipes_for_order(order: Order, items=None):
+def generate_recipes_for_order(order, items):
+    """
+    Generate recipes only for provided order items.
+    """
 
-    if items is None:
-        items = order.items.select_related("item")
+    station_map = {}
 
-    station_map: dict[str, list] = {}
+    for oi in items:
+        station = oi.item.station
+        station_map.setdefault(station, []).append(oi)
 
-    for order_item in items.select_related("item"):
-        station = order_item.item.station
-        station_map.setdefault(station, []).append(order_item)
-
-    created_recipes = []
+    recipes = []
 
     for station, station_items in station_map.items():
 
@@ -35,7 +35,6 @@ def generate_recipes_for_order(order: Order, items=None):
             ]
         )
 
-        created_recipes.append(recipe)
-        print("--")
+        recipes.append(recipe)
 
-    return created_recipes
+    return recipes
