@@ -36,5 +36,6 @@ def generate_recipes_for_order(order: Order, items=None):
         )
 
         created_recipes.append(recipe)
+        print("--")
 
     return created_recipes
