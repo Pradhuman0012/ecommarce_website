@@ -73,21 +73,28 @@ def draw_bill_pdf(*, bill, output) -> None:
 
     # --- ITEMS ---
     subtotal = Decimal("0.00")
+
     for bi in items:
         line_total = bi.price * bi.quantity
         subtotal += line_total
 
-        # Wrapped Name
         p.setFont("Courier-Bold", 10)
-        name_lines = simpleSplit(bi.item.name.upper(), "Courier-Bold", 10, 50 * mm)
+
+        name = bi.item.name.upper()
+
+        if bi.size:
+            name = f"{name} ({bi.size})"
+
+        name_lines = simpleSplit(name, "Courier-Bold", 10, 50 * mm)
 
         for i, line in enumerate(name_lines):
             _draw_dark_text(p, margin_left, y, line)
-            if i == 0:  # Print total on first line
+
+            if i == 0:
                 _draw_dark_text(p, margin_right, y, f"{line_total:>8.2f}", right=True)
+
             y -= 4.5 * mm
 
-        # Qty Details
         p.setFont("Courier", 9)
         p.drawString(margin_left + 2 * mm, y, f"{bi.quantity} x {bi.price}")
         y -= 6 * mm
@@ -147,8 +154,12 @@ def draw_kitchen_pdf(*, recipe, output) -> None:
     _draw_dark_text(p, width / 2, y, f"STATION: {recipe.station.upper()}", center=True)
     y -= 6 * mm
     p.setFont("Courier", 10)
+    table_number = recipe.order.table.number if recipe.order.table else "TAKEAWAY"
+
     p.drawCentredString(
-        width / 2, y, f"ID: {recipe.order_id} | {local_dt.strftime('%I:%M %p')}"
+        width / 2,
+        y,
+        f"TABLE {table_number} | KOT {recipe.order_id} | {local_dt.strftime('%I:%M %p')}",
     )
     y -= 5 * mm
     p.line(margin, y, width - margin, y)
@@ -157,21 +168,35 @@ def draw_kitchen_pdf(*, recipe, output) -> None:
     # KOT Items
     for item in items:
         # Large QTY and Name side-by-side or stacked
-        p.setFont("Courier-Bold", 18)
+        p.setFont("Courier-Bold", 14)
         _draw_dark_text(p, margin, y, f"{item.quantity} x")
 
-        p.setFont("Courier-Bold", 14)
-        name_lines = simpleSplit(item.item_name.upper(), "Courier-Bold", 14, 50 * mm)
+        p.setFont("Courier-Bold", 11)
 
-        # Start name next to QTY
-        for i, line in enumerate(name_lines):
+        name = item.item_name.upper()
+
+        if getattr(item, "size", None):
+            name = f"{name} ({item.size})"
+
+        name_lines = simpleSplit(name, "Courier-Bold", 11, 50 * mm)
+
+        for line in name_lines:
             _draw_dark_text(p, margin + 15 * mm, y, line)
             y -= 6 * mm
 
         if item.notes:
             p.setFont("Courier-BoldOblique", 11)
-            _draw_dark_text(p, margin + 5 * mm, y, f">> {item.notes}")
-            y -= 6 * mm
+
+            note_lines = simpleSplit(
+                f">> {item.notes}",
+                "Courier-BoldOblique",
+                11,
+                width - (margin + 10 * mm),
+            )
+
+            for line in note_lines:
+                _draw_dark_text(p, margin + 5 * mm, y, line)
+                y -= 5 * mm
 
         y -= 4 * mm
         p.setDash(2, 2)

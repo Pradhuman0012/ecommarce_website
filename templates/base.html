@@ -385,6 +385,16 @@
           </a>
           {% endif %}
         </li>
+        <!-- BILLING MODULE -->
+        {% if user.is_staff or user.is_superuser %}
+        <li class="nav-item">
+          <a class="nav-link"
+             href="{% url 'billing:table_order' %}">
+            Table Order
+          </a>
+          </a>
+          {% endif %}
+        </li>
 
         {% if user.is_superuser %}
         <!-- ADMIN PANEL -->

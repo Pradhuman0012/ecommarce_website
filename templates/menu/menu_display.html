@@ -24,6 +24,8 @@
   border: 1px solid var(--border-soft);
   border-radius: 16px;
   overflow: hidden;
+  display: flex; /* Added for alignment */
+  flex-direction: column; /* Added for alignment */
   transition: transform .2s ease;
 }
 
@@ -35,12 +37,15 @@
 .menu-item-image {
   width: 100%;
   height: 180px;
-  object-fit: cover;
+  object-fit: cover; /* Important: prevents stretching */
 }
 
 /* BODY */
 .menu-item-body {
   padding: 14px;
+  flex-grow: 1; /* Pushes content to fill the card height */
+  display: flex;
+  flex-direction: column;
 }
 
 .menu-item-title {
@@ -63,12 +68,16 @@
   font-size: 0.8rem;
   font-weight: 500;
 }
+
+.price-container {
+  margin-top: auto; /* Aligns prices at the bottom of the card */
+  padding-top: 10px;
+}
 {% endblock %}
 
 {% block body %}
 <div class="container py-5 menu-wrapper">
 
-  <!-- HEADER -->
   <div class="text-center mb-5">
     <h1 class="fw-bold">Mahakaal Themes Cafe</h1>
     <p class="text-muted">Fresh coffee • Cozy vibes</p>
@@ -90,12 +99,16 @@
 
           {% if item.image %}
             <img
-              src="{{ item.image.url }}"
+              {# FIX: Handling both Google URLs and Local Files #}
+              src="{% if 'http' in item.image.name %}{{ item.image.name }}{% else %}{{ item.image.url }}{% endif %}"
               class="menu-item-image"
               alt="{{ item.name }}"
+              onerror="this.src='https://placehold.co/400x300?text=Delicious+Food'"
             >
           {% else %}
-            <div style="height:180px;background:#e5e7eb;"></div>
+            <div style="height:180px;background:#e5e7eb; display: flex; align-items: center; justify-content: center;">
+                <span class="text-muted small">No Image</span>
+            </div>
           {% endif %}
 
           <div class="menu-item-body">
@@ -110,10 +123,10 @@
             </div>
             {% endif %}
 
-            <div class="d-flex flex-wrap gap-2">
+            <div class="price-container d-flex flex-wrap gap-2">
               {% for s in item.sizes.all %}
                 <span class="price-pill">
-                  {{ s.get_size_display }} ₹{{ s.price }}
+                  {{ s.get_size_display }} ₹{{ s.price|floatformat:0 }}
                 </span>
               {% endfor %}
             </div>

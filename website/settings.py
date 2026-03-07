@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     "authentication",
     "billing",
     "dashboard",
-    "orders",
+    "orders.apps.OrdersConfig",
     "cms",
 ]
 

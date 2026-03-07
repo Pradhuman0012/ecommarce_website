@@ -1,44 +1,52 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from billing.models import Bill
-from orders.models import OrderHistory
+from orders.models import Order, OrderHistory
 
 
-@receiver(post_save, sender=Bill)
-def create_order_history_from_bill(sender, instance: Bill, **kwargs):
+@receiver(post_save, sender=Order)
+def create_order_history_from_bill(sender, instance, created, **kwargs):
     """
-    Create history ONLY when bill has an order
-    and history does not already exist.
+    Create immutable snapshot when order gets billed.
     """
 
-    # Bill must be linked to order
-    if not hasattr(instance, "order"):
+    if created:
         return
 
-    # Prevent duplicates
-    if OrderHistory.objects.filter(order=instance.order).exists():
+    if not instance.bill:
         return
+
+    if OrderHistory.objects.filter(order=instance).exists():
+        return
+
+    bill = instance.bill
+
+    items_snapshot = []
+
+    for oi in instance.items.select_related("item"):
+        items_snapshot.append(
+            {
+                "item_name": oi.item.name,
+                "quantity": oi.quantity,
+                "size": oi.size,
+                "price": str(oi.item.get_price_for_size(oi.size)),
+                "notes": oi.notes,
+                "priority": oi.priority,
+            }
+        )
 
     OrderHistory.objects.create(
-        order=instance.order,
-        bill_number=instance.bill_number,
-        customer_name=instance.customer_name,
-        customer_phone=instance.customer_phone,
-        payment_mode=instance.payment_mode,
-        subtotal=instance.subtotal(),
-        discount=instance.discount_amount,
-        gst=instance.gst_amount(),
-        total_amount=instance.total_amount(),
-        cash_received=instance.cash_received,
-        change_returned=instance.change_returned,
-        bill_pdf_path=instance.bill_pdf_path or "",
-        items_snapshot=[
-            {
-                "item_name": bi.item.name,
-                "quantity": bi.quantity,
-                "price": str(bi.price),
-            }
-            for bi in instance.items.all()
-        ],
+        order=instance,
+        bill_number=bill.bill_number,
+        customer_name=bill.customer_name,
+        customer_phone=bill.customer_phone,
+        payment_mode=bill.payment_mode,
+        subtotal=bill.subtotal(),
+        discount=bill.discount_amount,
+        gst=bill.gst_amount(),
+        total_amount=bill.total_amount(),
+        cash_received=bill.cash_received,
+        change_returned=bill.change_returned,
+        bill_pdf_path=bill.bill_pdf_path or "",
+        items_snapshot=items_snapshot,
     )

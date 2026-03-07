@@ -7,6 +7,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from google.oauth2.service_account import Credentials
 
+from cms.services.menu_sync import sync_menu_from_sheet
 from core.decorators import staff_required
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -58,6 +59,8 @@ def cms_menu(request: HttpRequest) -> HttpResponse:
 
                 # Update entire row starting from column A
                 sheet.update(f"A{row}", [values])
+
+                sync_menu_from_sheet()
 
                 return JsonResponse({"status": "updated"})
 

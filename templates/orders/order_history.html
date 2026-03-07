@@ -2,7 +2,6 @@
 {% block title %}Order #{{ order.id }} Detail{% endblock %}
 
 {% block styleblock %}
-/* Timeline logic with Theme Variables */
 .timeline-stepper {
     position: relative;
     padding-left: 3rem;
@@ -27,12 +26,11 @@
     width: 1.25rem;
     height: 1.25rem;
     background: var(--accent);
-    border: 3px solid var(--bg-card); /* Theme aware border */
+    border: 3px solid var(--bg-card);
     border-radius: 50%;
     box-shadow: 0 0 0 2px var(--accent);
 }
 
-/* Fix for Snapshot Section in Dark Mode */
 .snapshot-card-header {
     background: var(--bg-soft) !important;
     color: var(--text-main) !important;
@@ -40,166 +38,270 @@
 }
 
 .summary-strip {
-    background: var(--bg-soft) !important; /* Replaces bg-light */
+    background: var(--bg-soft) !important;
     color: var(--text-main);
     border: 1px solid var(--border-soft);
 }
 
 .item-card {
     border: 1px dashed var(--border-soft);
-    background: var(--bg-card); /* Replaces #fafafa */
+    background: var(--bg-card);
     color: var(--text-main);
 }
 
 .note-box {
-    background: var(--bg-soft) !important; /* Replaces bg-white in notes */
+    background: var(--bg-soft) !important;
     border: 1px solid var(--border-soft);
     color: var(--text-muted);
 }
 
 .badge-priority { font-size: 0.7rem; letter-spacing: 0.5px; }
 
-/* Breadcrumb theme fix */
 .breadcrumb-item + .breadcrumb-item::before {
     color: var(--text-muted);
+}
+
+.text-discount {
+    color: #f87171 !important;
 }
 {% endblock %}
 
 {% block body %}
 <div class="container py-5">
 
-  <nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'orders:order_history_list' %}" class="text-decoration-none" style="color: var(--accent);">Orders</a></li>
-      <li class="breadcrumb-item active" style="color: var(--text-muted);">Order #{{ order.id }}</li>
-    </ol>
-  </nav>
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{% url 'orders:order_history_list' %}" class="text-decoration-none" style="color: var(--accent);">Orders</a>
+    </li>
+    <li class="breadcrumb-item active" style="color: var(--text-muted);">Order #{{ order.id }}</li>
+  </ol>
+</nav>
 
-  <div class="d-flex justify-content-between align-items-start mb-4">
-    <div>
-      <h2 class="fw-bold mb-1" style="color: var(--text-main);">Order #{{ order.id }}</h2>
-      <p class="mb-0" style="color: var(--text-muted);">Recorded for <strong style="color: var(--text-main);">{{ order.customer_name }}</strong></p>
-    </div>
-    <div class="d-flex gap-2">
-      {% if order.bill %}
-        <a href="{% url 'billing:bill_pdf' order.bill.id %}" target="_blank" class="btn btn-primary fw-bold shadow-sm">
-          <i class="bi bi-printer"></i> PRINT INVOICE
-        </a>
-        <a href="{% url 'billing:kitchen_pdf' order.id %}" target="_blank" class="btn btn-secondary fw-bold shadow-sm">
-            PRINT KOT SLIP
-        </a>
-      {% endif %}
-    </div>
+<div class="d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <h2 class="fw-bold mb-1" style="color: var(--text-main);">Order #{{ order.id }}</h2>
+    <p class="mb-0" style="color: var(--text-muted);">
+      Recorded for <strong style="color: var(--text-main);">{{ history.0.customer_name|default:order.customer_name }}</strong>
+    </p>
   </div>
 
-  <div class="row g-4">
-    <div class="col-lg-8">
-      <h5 class="fw-bold mb-4 text-uppercase small" style="color: var(--text-muted);">Activity Timeline</h5>
-
-      <div class="timeline-stepper">
-        {% for h in history %}
-        <div class="timeline-item">
-          <span class="timeline-dot"></span>
-          <div class="card shadow-sm border-0" style="background: var(--bg-card);">
-            <div class="card-header snapshot-card-header py-3 d-flex justify-content-between">
-              <span class="fw-bold"><i class="bi bi-clock-history me-2"></i>Snapshot at Entry</span>
-              <span class="small" style="color: var(--text-muted);">{{ h.created_at|date:"d M Y, h:i A" }}</span>
-            </div>
-
-            <div class="card-body">
-              <div class="row g-3 mb-4 summary-strip rounded p-2 mx-0">
-              <div class="col-4">
-                <small class="d-block" style="color: var(--text-muted);">Payment</small>
-                <span class="badge"
-                      style="background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-soft);">
-                  {{ order.bill.payment_mode|default:"—" }}
-                </span>
-              </div>
-
-              <div class="col-4">
-                <small class="d-block" style="color: var(--text-muted);">Taxable</small>
-                <span class="fw-bold" style="color: var(--text-main);">
-                  ₹ {{ order.bill.subtotal|floatformat:2 }}
-                </span>
-              </div>
-
-              <div class="col-4">
-                <small class="d-block" style="color: var(--text-muted);">Grand Total</small>
-                <span class="fw-bold" style="color: var(--accent);">
-                  ₹ {{ order.bill.total_amount|floatformat:2 }}
-                </span>
-              </div>
-            </div>
-
-              <div class="row g-3">
-                {% for item in h.items_snapshot %}
-                <div class="col-md-6">
-                  <div class="p-3 rounded item-card h-100">
-                    <div class="d-flex justify-content-between align-items-start">
-                      <span class="fw-bold">{{ item.item_name }}</span>
-                      <span class="badge bg-dark text-white">× {{ item.quantity }}</span>
-                    </div>
-
-                    <div class="mt-2">
-                      {% if item.priority %}
-                        <span class="badge bg-warning text-dark badge-priority text-uppercase">Priority {{ item.priority }}</span>
-                      {% endif %}
-                      {% if item.size %}
-                        <span class="badge bg-info text-dark badge-priority text-uppercase">{{ item.size }}</span>
-                      {% endif %}
-                    </div>
-
-                    {% if item.notes %}
-                      <div class="mt-2 p-2 rounded note-box small italic">
-                        <i class="bi bi-chat-left-text me-1"></i> {{ item.notes }}
-                      </div>
-                    {% endif %}
-                  </div>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="text-center py-5">
-          <i class="bi bi-hourglass-split h1 opacity-25" style="color: var(--text-muted);"></i>
-          <p style="color: var(--text-muted);">No timeline data available for this order.</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="card shadow-sm border-0 mb-4" style="background: var(--bg-card);">
-        <div class="card-body">
-          <h6 class="fw-bold mb-3" style="color: var(--text-muted);">Customer Details</h6>
-          <div class="d-flex align-items-center mb-3">
-            <div class="rounded-circle p-3 me-3" style="background: var(--bg-soft); color: var(--accent);">
-              <i class="bi bi-person h4 mb-0"></i>
-            </div>
-            <div>
-              <div class="fw-bold" style="color: var(--text-main);">{{ order.customer_name }}</div>
-              <div class="small" style="color: var(--text-muted);">{{ order.customer_phone }}</div>
-            </div>
-          </div>
-          <hr style="border-color: var(--border-soft);">
-          <div class="d-flex justify-content-between mb-2">
-            <span style="color: var(--text-muted);">First Order</span>
-            <span class="small" style="color: var(--text-main);">{{ order.created_at|date:"d M Y" }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card shadow-sm border-0 bg-dark text-white">
-        <div class="card-body p-4 text-center">
-          <div class="small opacity-75 text-uppercase mb-1">Final Bill Value</div>
-          <h2 class="fw-bold mb-0">
-            ₹ {{ order.bill.total_amount|floatformat:2 }}
-          </h2>
-        </div>
-      </div>
-    </div>
+  <div class="d-flex flex-wrap gap-2">
+    {% if order.bill %}
+    <a href="{% url 'billing:bill_pdf' order.bill.id %}" target="_blank" class="btn fw-bold shadow-sm" style="background: var(--accent); color: white; border:none;">
+       PRINT INVOICE
+    </a>
+    {% for kot in kot_orders %}
+    <a href="{% url 'billing:kitchen_pdf' kot.id %}" target="_blank" class="btn fw-bold shadow-sm" style="background: var(--bg-soft); color: var(--text-main); border: 1px solid var(--border-soft);">
+       KOT {{ kot.id }}
+    </a>
+    {% endfor %}
+    {% endif %}
   </div>
 </div>
+
+<div class="row g-4">
+<div class="col-lg-8">
+<h5 class="fw-bold mb-4 text-uppercase small" style="color: var(--text-muted);">Activity Timeline</h5>
+
+<div class="timeline-stepper">
+{% if history %}
+
+<div class="timeline-item">
+<span class="timeline-dot"></span>
+
+<div class="card shadow-sm border-0" style="background: var(--bg-card);">
+<div class="card-header snapshot-card-header py-3 d-flex justify-content-between">
+<span class="fw-bold">Bill Summary</span>
+<span class="small text-muted">{{ history.0.created_at|date:"d M Y, h:i A" }}</span>
+</div>
+
+<div class="card-body">
+
+<div class="row g-3 mb-4 summary-strip rounded p-2 mx-0 text-center">
+
+<div class="col">
+<small class="d-block text-muted">Subtotal</small>
+<span class="fw-bold">₹ {{ history.0.subtotal|floatformat:2 }}</span>
+</div>
+
+<div class="col">
+<small class="d-block text-muted">Discount</small>
+<span class="fw-bold text-discount">
+- ₹ {{ history.0.discount_amount|floatformat:2 }}
+</span>
+</div>
+
+<div class="col">
+<small class="d-block text-muted">CGST (2.5%)</small>
+<span class="fw-bold">
+₹ {{ history.0.cgst_amount|floatformat:2 }}
+</span>
+</div>
+
+<div class="col">
+<small class="d-block text-muted">SGST (2.5%)</small>
+<span class="fw-bold">
+₹ {{ history.0.sgst_amount|floatformat:2 }}
+</span>
+</div>
+
+<div class="col">
+<small class="d-block text-muted">Total</small>
+<span class="fw-bold" style="color: var(--accent);">
+₹ {{ history.0.total_amount|floatformat:2 }}
+</span>
+</div>
+
+</div>
+</div>
+</div>
+</div>
+
+{% for h in history %}
+<div class="timeline-item">
+<span class="timeline-dot"></span>
+
+<div class="card shadow-sm border-0" style="background: var(--bg-card);">
+<div class="card-header snapshot-card-header py-3 d-flex justify-content-between">
+<span class="fw-bold">KOT Items</span>
+<span class="small text-muted">Order {{ h.order.id }}</span>
+</div>
+
+<div class="card-body">
+<div class="row g-3">
+
+{% for item in h.items_snapshot %}
+<div class="col-md-6">
+<div class="p-3 rounded item-card h-100">
+
+<div class="d-flex justify-content-between align-items-start">
+<span class="fw-bold">{{ item.item_name }}</span>
+<span class="badge bg-dark text-white">× {{ item.quantity }}</span>
+</div>
+
+<div class="small text-muted mt-1">
+Price: ₹ {{ item.price }}
+</div>
+
+<div class="mt-2">
+{% if item.size %}
+<span class="badge bg-info text-dark badge-priority">
+{{ item.size }}
+</span>
+{% endif %}
+</div>
+
+{% if item.notes %}
+<div class="mt-2 p-2 rounded note-box small">
+{{ item.notes }}
+</div>
+{% endif %}
+
+</div>
+</div>
+{% endfor %}
+
+</div>
+</div>
+</div>
+</div>
+{% endfor %}
+
+{% else %}
+<div class="text-center py-5">
+<p style="color: var(--text-muted);">
+No timeline data available.
+</p>
+</div>
+{% endif %}
+</div>
+</div>
+
+
+<div class="col-lg-4">
+
+<div class="card shadow-sm border-0 mb-4" style="background: var(--bg-card);">
+<div class="card-body">
+
+<h6 class="fw-bold mb-3 text-muted">
+Customer Detail
+</h6>
+
+<div class="fw-bold">
+{{ history.0.customer_name|default:order.customer_name }}
+</div>
+
+<div class="small text-muted">
+{{ history.0.customer_phone|default:"No Phone" }}
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between">
+<span class="text-muted">Payment Mode</span>
+<span class="fw-bold text-uppercase">
+{{ order.bill.payment_mode }}
+</span>
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between">
+<span class="text-muted">Status</span>
+<span class="badge bg-success">
+BILLED
+</span>
+</div>
+
+</div>
+</div>
+
+{% if order.bill %}
+
+<div class="card shadow-sm border-0 bg-dark text-white">
+<div class="card-body p-4">
+
+<div class="d-flex justify-content-between small opacity-75 mb-1">
+<span>Subtotal</span>
+<span>₹ {{ bill.subtotal|floatformat:2 }}</span>
+</div>
+
+{% if order.bill.discount_amount > 0 %}
+<div class="d-flex justify-content-between small text-discount mb-1">
+<span>Discount ({{ bill.discount_percent }}%)</span>
+<span>- ₹ {{ order.bill.discount_amount|floatformat:2 }}</span>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between small opacity-75">
+<span>CGST (2.5%)</span>
+<span>₹ {{ history.0.cgst_amount|floatformat:2 }}</span>
+</div>
+
+<div class="d-flex justify-content-between small opacity-75 mb-3">
+<span>SGST (2.5%)</span>
+<span>₹ {{ history.0.sgst_amount|floatformat:2 }}</span>
+</div>
+
+<hr style="border-color: rgba(255,255,255,0.1);">
+
+<div class="d-flex justify-content-between align-items-center">
+<span class="text-uppercase fw-bold small">
+Final Bill
+</span>
+
+<h2 class="fw-bold mb-0">
+₹ {{ order.bill.total_amount|floatformat:2 }}
+</h2>
+
+</div>
+</div>
+</div>
+
+{% endif %}
+</div>
+</div>
+</div>
+
 {% endblock %}

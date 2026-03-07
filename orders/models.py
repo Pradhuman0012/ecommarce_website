@@ -4,20 +4,34 @@ from django.db import models
 from django.utils import timezone
 
 
+class Table(models.Model):
+    number = models.CharField(max_length=10, unique=True)
+    is_occupied = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Table {self.number}"
+
+
 class Station(models.TextChoices):
     KITCHEN = "KITCHEN", "Kitchen"
     BARISTA = "BARISTA", "Barista"
 
 
 class Order(models.Model):
-    bill = models.OneToOneField(
+    table = models.ForeignKey(
+        Table, on_delete=models.CASCADE, related_name="orders", null=True
+    )
+    bill = models.ForeignKey(
         "billing.Bill",
-        on_delete=models.CASCADE,
-        related_name="order",
+        on_delete=models.SET_NULL,  # Bill delete ho to order delete na ho
+        related_name="orders",
         null=True,
         blank=True,
     )
     customer_name = models.CharField(max_length=255)
+    is_billed = models.BooleanField(
+        default=False
+    )  # Ye track karega ki iska bill ban chuka hai ya nahi
     created_at = models.DateTimeField(default=timezone.now)
 
     class Status(models.TextChoices):
@@ -46,11 +60,12 @@ class OrderItem(models.Model):
         on_delete=models.PROTECT,
     )
     quantity = models.PositiveIntegerField(default=1)
-
+    size = models.CharField(max_length=10, default="REGULAR")
     priority = models.PositiveSmallIntegerField(
         help_text="Lower number = served first",
         default=1,
     )
+    is_sent_to_kitchen = models.BooleanField(default=False)
 
     notes = models.TextField(blank=True)
 
@@ -94,6 +109,7 @@ class RecipeItem(models.Model):
     )
     item_name = models.CharField(max_length=255)
     quantity = models.PositiveIntegerField()
+    size = models.CharField(max_length=10, blank=True, default="")
     priority = models.PositiveSmallIntegerField()
     notes = models.TextField(blank=True)
 

@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% block title %}Mahakaal POS | Smart Dashboard{% endblock %}
+
+{% block styleblock %}
+/* ================== EXISTING STYLES (NO CHANGES) ================== */
+.pos-wrapper {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+}
+
+.left-content { flex: 1; height: 100%; overflow-y: auto; transition: all 0.3s ease; }
+
+.side-order-panel {
+    width: 380px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 30px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.pos-screen { display: none; height: 100%; }
+.pos-screen.active { display: block; }
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; }
+.cat-card {
+    height: 170px;
+    border-radius: 25px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--border-soft);
+    position: relative;
+    transition: 0.3s ease;
+    background: #000;
+}
+
+.qty-wrapper-pill {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--border-soft);
+    padding: 6px 10px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: 0.2s;
+    width: fit-content;
+}
+
+.qty-control-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.qty-control-btn:active { transform: scale(0.9); }
+
+.qty-number-display {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    min-width: 20px;
+    text-align: center;
+}
+
+.cat-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 15px 15px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 40%, transparent 100%);
+    transition: 0.3s;
+}
+
+.cat-name {
+    color: #ffffff !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-size: 14px;
+    text-align: center;
+    line-height: 1.3;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.item-row { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 24px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 20px; }
+.item-thumb { width: 90px; height: 90px; border-radius: 20px; object-fit: cover; }
+
+.side-header { padding: 20px; border-bottom: 1px solid var(--border-soft); background: var(--bg-soft); border-radius: 30px 30px 0 0; }
+.side-body { flex: 1; overflow-y: auto; padding: 20px; }
+.side-footer { padding: 20px; background: var(--bg-soft); border-radius: 0 0 30px 30px; }
+.served-item { padding: 8px 0; border-bottom: 1px solid var(--border-soft); opacity: 0.8; font-size: 14px; }
+.new-item-card { background: var(--bg-soft); border-radius: 15px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--accent); }
+
+.notes-input-wrapper { display: none; margin-top: 10px; }
+.notes-input { width: 100%; background: var(--bg-soft); border: 2px dashed var(--accent); border-radius: 10px; padding: 12px; font-size: 16px; color: var(--text-main); }
+.add-note-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px dashed var(--accent);
+    background: var(--bg-soft);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    transition: 0.2s ease;
+    cursor: pointer;
+}
+.done-note-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px 15px; font-weight: 800; margin-top: 5px; float: right; }
+
+.p-pill { cursor: pointer; transition: 0.2s; }
+.p-pill.active-size { background: var(--accent) !important; color: white !important; }
+
+.modal-content { background: #1a1a1a; border-radius: 28px; border: 1px solid var(--border-soft); color: white; }
+.checkout-input { height: 50px; border-radius: 12px; background: #262626; border: none; color: white; }
+.checkout-input:focus { background: #333; color: white; box-shadow: none; border: 1px solid var(--accent); }
+.total-box { background: #2c343f; border-radius: 20px; padding: 25px; }
+.generate-btn {
+    height: 60px;
+    border-radius: 50px;
+    background: #89ca9e;
+    border: none;
+    font-weight: 800;
+    color: #1a1a1a;
+    font-size: 1.2rem;
+    transition: 0.3s;
+}
+.generate-btn:hover { background: #78b88d; transform: translateY(-2px); }
+
+.tax-line { font-size: 14px; color: #a1a1a1; display: flex; justify-content: space-between; margin-bottom: 6px; }
+.tax-line.discount { color: #f87171; }
+
+/* ================== ADDITIONAL OPTIMIZATIONS (NEW) ================== */
+
+/* 1. Sidebar Sticky Footer */
+.side-order-panel { height: 100%; position: relative; }
+.side-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    border-top: 1px solid var(--border-soft);
+}
+
+/* 2. Horizontal Category Bar */
+.category-scroll-nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding-bottom: 15px;
+    scrollbar-width: none;
+}
+.category-scroll-nav::-webkit-scrollbar { display: none; }
+.cat-nav-pill {
+    white-space: nowrap;
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    padding: 10px 20px;
+    border-radius: 50px;
+    color: var(--text-main);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s;
+}
+.cat-nav-pill.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* 3. Search Bar */
+.search-box-pos {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-soft) !important;
+    color: white !important;
+    border-radius: 50px !important;
+    padding: 8px 20px !important;
+}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="pos-wrapper">
+        <div class="left-content">
+            <div id="tableDashboard" class="pos-screen active">
+                <h3 class="fw-bold mb-4 text-white">Table Dashboard</h3>
+                <div class="cat-grid">
+                    {% for table in tables %}
+                    <div class="cat-card" onclick="startTableOrder('{{ table.id }}', '{{ table.number }}', '{{ table.is_occupied|lower }}')">
+                        <div class="cat-overlay" style="background: {% if table.is_occupied %}#f87171{% else %}var(--accent){% endif %};">
+                            <div class="text-center">
+                                <div class="h2 fw-bold text-white mb-0">T-{{ table.number }}</div>
+                                <span class="badge rounded-pill bg-white text-dark">{% if table.is_occupied %}OCCUPIED{% else %}FREE{% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="catScreen" class="pos-screen">
+                <div class="mb-4">
+                    <button class="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-bold" onclick="showScreen('tableDashboard')">← BACK TO DASHBOARD</button>
+                    <h3 class="fw-bold mt-3 text-white">Select Category</h3>
+                </div>
+                <div class="cat-grid">
+                    {% for cat in categories %}
+                    <div class="cat-card" onclick="openCategory('cat-{{ cat.id }}', '{{ cat.name }}')">
+                        <img src="{% if cat.image %}{% if 'http' in cat.image.name %}{{ cat.image.name }}{% else %}{{ cat.image.url }}{% endif %}{% else %}https://placehold.co/400x400{% endif %}" style="width:100%;height:100%;object-fit:cover;">
+                        <div class="cat-overlay"><span class="cat-name">{{ cat.name }}</span></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="itemScreen" class="pos-screen">
+                <div class="mb-3 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-sm btn-dark rounded-pill px-3 py-2 fw-bold" onclick="showScreen('catScreen')">←</button>
+                        <h3 id="activeCatTitle" class="fw-bold mb-0 text-white">Items</h3>
+                    </div>
+                    <div style="width: 250px;">
+                        <input type="text" id="menuSearch" class="form-control search-box-pos" placeholder="Search dish..." onkeyup="filterMenu(this.value)">
+                    </div>
+                </div>
+
+                <div class="category-scroll-nav">
+                    {% for cat in categories %}
+                    <div class="cat-nav-pill" id="nav-cat-{{ cat.id }}" onclick="openCategory('cat-{{ cat.id }}', '{{ cat.name }}')">{{ cat.name }}</div>
+                    {% endfor %}
+                </div>
+
+                <div id="itemsContainer" class="mt-3">
+                    {% for item in items %}
+                    <div class="item-row item-node cat-{{ item.category.id }}">
+                        <img class="item-thumb" src="{% if item.image %}{% if 'http' in item.image.name %}{{ item.image.name }}{% else %}{{ item.image.url }}{% endif %}{% else %}https://placehold.co/100{% endif %}">
+                        <div style="flex:1">
+                            <div class="fw-bold h4 mb-2 text-white">{{ item.name }}</div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                {% for s in item.sizes.all %}
+                                <div class="p-pill bg-soft border rounded-3 px-3 py-2 fw-bold cursor-pointer"
+                                     id="btn-{{ item.id }}-{{ s.size }}"
+                                     data-label="{{ s.get_size_display }} • ₹{{ s.price|floatformat:0 }}"
+                                     onclick="addToCart('{{ item.id }}', '{{ item.name|escapejs }}', '{{ s.price }}', '{{ s.size }}')">
+                                    {{ s.get_size_display }} • ₹{{ s.price|floatformat:0 }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div id="notes-wrapper-{{ item.id }}" class="notes-input-wrapper">
+                                <input type="text" id="input-note-{{ item.id }}" class="notes-input" placeholder="Instruction for {{ item.name }}..." oninput="updateNote('{{ item.id }}', this.value)">
+                                <button type="button" class="done-note-btn" onclick="toggleNote('{{ item.id }}')">DONE</button>
+                            </div>
+                            <span class="add-note-btn" id="note-trigger-{{ item.id }}" style="display:none;" onclick="toggleNote('{{ item.id }}')">+ Add Instruction</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="side-order-panel" id="sidePanel">
+            <div class="side-header">
+                <h5 class="fw-bold mb-0 text-white">Table <span id="summaryTable"></span></h5>
+                <small class="text-muted">Order Tracking</small>
+            </div>
+            <div class="side-body" id="summaryList"></div>
+            <div class="side-footer">
+                <div class="tax-line"><span>Subtotal</span><span>₹<span id="displaySubtotal">0</span></span></div>
+                <div class="tax-line"><span>CGST (2.5%)</span><span>₹<span id="displayCGST">0</span></span></div>
+                <div class="tax-line"><span>SGST (2.5%)</span><span>₹<span id="displaySGST">0</span></span></div>
+
+                <div class="d-flex justify-content-between h4 fw-bold mt-2 mb-3 pt-2 border-top">
+                    <span class="text-white">Total</span>
+                    <span class="text-white">₹<span id="grandTotal">0</span></span>
+                </div>
+                <form id="posActionForm" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="table_id" id="fTableId">
+                    <input type="hidden" name="items_payload" id="fPayload">
+                    <input type="hidden" name="action_type" id="fAction">
+
+                    <input type="hidden" name="customer_name" id="fCustName">
+                    <input type="hidden" name="customer_phone" id="fCustPhone">
+                    <input type="hidden" name="payment_mode" id="fPayMode">
+                    <input type="hidden" name="cash_amount" id="fCashAmount" value="0">
+                    <input type="hidden" name="online_amount" id="fOnlineAmount" value="0">
+                    <input type="hidden" name="discount_pct" id="fDiscountPct" value="0">
+
+                    <div class="row g-2">
+                        <div class="col-6"><button type="button" class="btn btn-warning w-100 py-3 fw-bold" onclick="submitPOS('KOT')">SEND KOT</button></div>
+                        <div class="col-6"><button type="button" class="btn w-100 py-3 fw-bold" style="background:#89ca9e; color:#1a1a1a;" onclick="submitPOS('BILL')">BILL</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h3 class="fw-bold mb-0 text-white">Complete Order</h3>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row">
+                    <div class="col-md-6 border-end" style="border-color: #444 !important;">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Customer Name</label>
+                            <input type="text" id="mCustName" class="form-control checkout-input" placeholder="Guest Name">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Mobile Number</label>
+                            <input type="tel" id="mCustPhone" class="form-control checkout-input" placeholder="Optional">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Discount %</label>
+                            <input type="number" id="mDiscountPct" class="form-control checkout-input" placeholder="0" min="0" max="100" oninput="runRecalc()">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Payment Mode</label>
+                            <select id="mPayMode" class="form-select checkout-input" onchange="togglePaymentUI()">
+                                <option value="UPI">UPI / Digital</option>
+                                <option value="CASH">CASH</option>
+                                <option value="SPLIT">SPLIT (Cash + Online)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 ps-md-4">
+                        <div id="cashCalcBox" class="p-3 mb-3 rounded-4" style="display:none; background:#262626; border: 1px solid #444;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="small fw-bold text-muted">Cash Received</label>
+                                    <input type="number" id="cashIn" class="form-control bg-dark text-white border-0" placeholder="0" oninput="runCashCalc()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="small fw-bold text-muted">Return Change</label>
+                                    <input type="text" id="cashOut" class="form-control bg-dark fw-bold text-success border-0" readonly value="₹ 0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="splitPayBox" class="p-3 mb-3 rounded-4" style="display:none; background:#262626; border: 1px solid #444;">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="small fw-bold text-muted">Cash Amount</label>
+                                    <input type="number" id="splitCash" class="form-control bg-dark text-white border-0" placeholder="0" oninput="validateSplit()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="small fw-bold text-muted">Online Amount</label>
+                                    <input type="number" id="splitOnline" class="form-control bg-dark text-white border-0" placeholder="0" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="total-box">
+                            <div class="tax-line"><span>Subtotal</span><span>₹<span id="modalSubtotal">0</span></span></div>
+                            <div id="discountLine" class="tax-line discount" style="display:none;"><span>Discount (<span id="discountLabel">0</span>%)</span><span>- ₹<span id="modalDiscountAmt">0</span></span></div>
+                            <div class="tax-line"><span>CGST (2.5%)</span><span>₹<span id="modalCGST">0</span></span></div>
+                            <div class="tax-line"><span>SGST (2.5%)</span><span>₹<span id="modalSGST">0</span></span></div>
+                            <hr style="border-color: #444;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-white">
+                                    <span class="fw-bold h5 mb-0 d-block">Total Payable</span>
+                                    <small style="opacity:0.7">Round-off Included</small>
+                                </div>
+                                <span class="fw-bold h2 mb-0 text-white">₹<span id="modalGrandTotal">0</span></span>
+                            </div>
+                        </div>
+
+                        <button class="generate-btn w-100 mt-4" onclick="finalizeBill()">GENERATE FINAL BILL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ================== EXISTING JS LOGIC (NO CHANGES) ================== */
+let cart = {};
+let tableServedItems = [];
+
+function showScreen(screenId) {
+    $('.pos-screen').removeClass('active');
+    $('#' + screenId).addClass('active');
+    if(screenId === 'tableDashboard') { $('#sidePanel').fadeOut(200); cart = {}; }
+    else { $('#sidePanel').css('display', 'flex').hide().fadeIn(200); }
+    window.scrollTo(0,0);
+}
+
+function startTableOrder(id, num, isOccupied) {
+    $('#fTableId').val(id);
+    $('#summaryTable').text(num);
+    if(isOccupied === 'true') {
+        $.get(`/billing/api/table-order/${id}/`, function(response) {
+            tableServedItems = response.items;
+            renderSummary();
+        });
+    } else {
+        tableServedItems = [];
+        renderSummary();
+    }
+    showScreen('catScreen');
+}
+
+function addToCart(id, name, price, size) {
+    const key = id + '_' + size;
+    if(cart[key]) {
+        changeQty(id, size, 1);
+    } else {
+        cart[key] = { id, name, price: parseFloat(price), qty: 1, size, notes: "" };
+        renderInlineControls(id, size);
+        renderSummary();
+    }
+}
+
+function renderInlineControls(id, size) {
+    const key = id + '_' + size;
+    const item = cart[key];
+    const $btn = $(`#btn-${id}-${size}`);
+
+    if(item && item.qty > 0) {
+        $btn.removeClass('p-pill bg-soft border').html(`
+            <div class="qty-wrapper-pill">
+                <button class="qty-control-btn" onclick="event.stopPropagation(); changeQty('${id}', '${size}', -1)">-</button>
+                <span class="qty-number-display">${item.qty}</span>
+                <button class="qty-control-btn" onclick="event.stopPropagation(); changeQty('${id}', '${size}', 1)">+</button>
+            </div>
+        `).css({'background':'transparent', 'border':'none', 'padding':'0'});
+        $(`#note-trigger-${id}`).show();
+    } else {
+        const originalLabel = $btn.data('label');
+        $btn.addClass('p-pill bg-soft border').html(originalLabel).css({'background':'', 'border':'', 'padding':''});
+
+        let otherSizeExists = Object.keys(cart).some(k => k.startsWith(id + '_'));
+        if(!otherSizeExists) {
+            $(`#note-trigger-${id}`).hide();
+            $(`#notes-wrapper-${id}`).hide();
+        }
+    }
+}
+
+function changeQty(id, size, delta) {
+    const key = id + '_' + size;
+    if (!cart[key]) return;
+    cart[key].qty += delta;
+    if(cart[key].qty <= 0) delete cart[key];
+    renderInlineControls(id, size);
+    renderSummary();
+}
+
+function renderSummary() {
+    let html = '';
+    let subtotal = 0;
+
+    if(tableServedItems.length > 0) {
+        html += `<div class="fw-bold mb-2 text-muted small uppercase">SERVED ITEMS</div>`;
+        tableServedItems.forEach(i => {
+            let noteHtml = i.notes ? `<div class="small text-danger" style="font-size: 11px;">Note: ${i.notes}</div>` : '';
+            html += `<div class="served-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-white"><strong>${i.qty}x</strong> ${i.name} <small class="text-muted">(${i.size})</small></span>
+                            <span class="badge bg-success" style="font-size: 10px;">KITCHEN</span>
+                        </div>
+                        ${noteHtml}
+                    </div>`;
+            subtotal += (parseFloat(i.price) * parseInt(i.qty));
+        });
+    }
+
+    if(Object.keys(cart).length > 0) {
+        html += `<div class="fw-bold mb-2 mt-3 text-muted small uppercase">NEW ITEMS</div>`;
+        Object.entries(cart).forEach(([key, item]) => {
+            html += `<div class="new-item-card shadow-sm">
+                        <div class="d-flex justify-content-between text-white"><strong>${item.qty}x ${item.name}</strong><span>₹${item.price * item.qty}</span></div>
+                        <div class="small text-muted">${item.size}${item.notes ? ' | ' + item.notes : ''}</div>
+                     </div>`;
+            subtotal += (item.price * item.qty);
+        });
+    }
+
+    let cgst = subtotal * 0.025;
+    let sgst = subtotal * 0.025;
+    let roundedTotal = Math.round(subtotal + cgst + sgst);
+
+    $('#displaySubtotal').text(subtotal.toFixed(2));
+    $('#displayCGST').text(cgst.toFixed(2));
+    $('#displaySGST').text(sgst.toFixed(2));
+    $('#grandTotal').text(roundedTotal);
+    $('#summaryList').html(html || '<div class="text-center mt-5 text-muted">No items</div>');
+}
+
+function togglePaymentUI() {
+    const mode = $('#mPayMode').val();
+    $('#cashCalcBox').toggle(mode === 'CASH');
+    $('#splitPayBox').toggle(mode === 'SPLIT');
+    if (mode === 'SPLIT' || mode === 'CASH') runRecalc();
+}
+
+function runCashCalc() {
+    const total = parseFloat($('#modalGrandTotal').text());
+    const received = parseFloat($('#cashIn').val()) || 0;
+    const change = Math.max(received - total, 0);
+    $('#cashOut').val('₹ ' + change.toFixed(0));
+}
+
+function validateSplit() {
+    const total = parseFloat($('#modalGrandTotal').text());
+    let cash = parseFloat($('#splitCash').val()) || 0;
+    if (cash > total) { cash = total; $('#splitCash').val(total); }
+    $('#splitOnline').val((total - cash).toFixed(0));
+}
+
+function runRecalc() {
+    const sub = parseFloat($('#displaySubtotal').text());
+    const discPct = parseFloat($('#mDiscountPct').val()) || 0;
+    const discAmt = sub * (discPct / 100);
+    const taxableSub = sub - discAmt;
+    const cgst = taxableSub * 0.025;
+    const sgst = taxableSub * 0.025;
+    const finalTotal = Math.round(taxableSub + cgst + sgst);
+    $('#modalSubtotal').text(sub.toFixed(2));
+    if (discPct > 0) {
+        $('#discountLine').show();
+        $('#discountLabel').text(discPct);
+        $('#modalDiscountAmt').text(discAmt.toFixed(2));
+    } else {
+        $('#discountLine').hide();
+    }
+    $('#modalCGST').text(cgst.toFixed(2));
+    $('#modalSGST').text(sgst.toFixed(2));
+    $('#modalGrandTotal').text(finalTotal);
+    const mode = $('#mPayMode').val();
+    if (mode === 'SPLIT') { $('#splitOnline').val(finalTotal); $('#splitCash').val(''); }
+    runCashCalc();
+}
+
+function submitPOS(type) {
+    if (type === 'BILL') {
+        $('#mDiscountPct').val(0);
+        runRecalc();
+        togglePaymentUI();
+        $('#checkoutModal').modal('show');
+    } else {
+        if (Object.keys(cart).length === 0) { alert("Add items!"); return; }
+        $('#fPayload').val(JSON.stringify(cart));
+        $('#fAction').val('KOT');
+        $('#posActionForm').submit();
+    }
+}
+
+function finalizeBill() {
+    const total = parseFloat($('#modalGrandTotal').text());
+    const mode = $('#mPayMode').val();
+    let cashAmt = 0, onlineAmt = 0;
+    if (mode === 'CASH') cashAmt = total;
+    else if (mode === 'UPI') onlineAmt = total;
+    else { cashAmt = parseFloat($('#splitCash').val()) || 0; onlineAmt = parseFloat($('#splitOnline').val()) || 0; }
+    $('#fCustName').val($('#mCustName').val() || "Guest");
+    $('#fCustPhone').val($('#mCustPhone').val());
+    $('#fDiscountPct').val($('#mDiscountPct').val() || 0);
+    $('#fPayMode').val(mode);
+    $('#fCashAmount').val(cashAmt);
+    $('#fOnlineAmount').val(onlineAmt);
+    $('#fPayload').val(JSON.stringify(cart));
+    $('#fAction').val('BILL');
+    $('#posActionForm').submit();
+}
+
+function toggleNote(id) { $(`#notes-wrapper-${id}`).toggle(); $(`#note-trigger-${id}`).toggle(); }
+function updateNote(id, val) { Object.keys(cart).forEach(k => { if(k.startsWith(id + '_')) cart[k].notes = val; }); renderSummary(); }
+
+
+/* ================== NEW HELPER JS FUNCTIONS (OPTIMIZATION) ================== */
+
+// 1. Improved openCategory to highlight active pill
+function openCategory(id, name) {
+    $('#activeCatTitle').text(name);
+    $('.cat-nav-pill').removeClass('active');
+    $('#nav-' + id).addClass('active'); // Highlight horizontal pill
+    $('.item-node').hide();
+    $('.' + id).fadeIn(200);
+    $('#menuSearch').val(''); // Clear search when category changes
+    showScreen('itemScreen');
+}
+
+// 2. Menu Search Logic
+function filterMenu(query) {
+    query = query.toLowerCase();
+
+    if (query.length > 0) {
+        // Agar kuch type kiya hai toh puri categories ki restriction hata do
+        $('.cat-nav-pill').removeClass('active'); // Nav highlight hatao
+
+        $('.item-node').each(function() {
+            const itemName = $(this).find('.h4').text().toLowerCase();
+            if (itemName.includes(query)) {
+                $(this).fadeIn(100);
+            } else {
+                $(this).fadeOut(100);
+            }
+        });
+    } else {
+        // Agar search empty hai, toh wapas active category par chale jao
+        // Default behavior: pehli category dikhao ya jo selected thi
+        const activeCatId = $('.cat-nav-pill.active').attr('id')?.replace('nav-', '');
+        if (activeCatId) {
+            $('.item-node').hide();
+            $('.' + activeCatId).fadeIn(100);
+        }
+    }
+}
+
+// Category switch karne par search ko clear karne ka function
+function openCategory(id, name) {
+    $('#activeCatTitle').text(name);
+    $('.cat-nav-pill').removeClass('active');
+    $('#nav-' + id).addClass('active');
+
+    $('#menuSearch').val(''); // Search box khali karo
+    $('.item-node').hide();   // Sab hide karo
+    $('.' + id).fadeIn(200);  // Sirf selected category dikhao
+
+    showScreen('itemScreen');
+}
+</script>
+{% endblock %}

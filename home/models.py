@@ -7,7 +7,9 @@ from django.utils import timezone
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to="category_images/", blank=True, null=True)
+    image = models.ImageField(
+        upload_to="category_images/", blank=True, null=True, max_length=500
+    )
     is_active = models.BooleanField(default=True)
 
     def __str__(self) -> str:
@@ -26,7 +28,9 @@ class Item(models.Model):
     )
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to="item_images/", blank=True, null=True)
+    image = models.ImageField(
+        upload_to="item_images/", blank=True, null=True, max_length=500
+    )
 
     station = models.CharField(
         max_length=20,
