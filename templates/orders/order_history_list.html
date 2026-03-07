@@ -35,7 +35,7 @@
             <td><div class="fw-bold">{{ order.customer_name }}</div></td>
             <td class="text-center"><span class="badge bg-soft-primary text-primary border">{{ order.bill.payment_mode }}</span></td>
             <td class="text-end fw-bold" data-amount="{{ order.bill.total_amount|floatformat:2 }}">₹ {{ order.bill.total_amount|floatformat:2 }}</td>
-            <td>{{ order.created_at|date:"d M, h:i A" }}</td>
+            <td>{{ order.bill.created_at|date:"d M, h:i A" }}</td>
             <td class="text-center">
               <a href="{% url 'orders:order_history' order.id %}" class="btn btn-sm btn-outline-secondary">View</a>
             </td>

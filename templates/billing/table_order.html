@@ -2,7 +2,7 @@
 {% block title %}Mahakaal POS | Smart Dashboard{% endblock %}
 
 {% block styleblock %}
-/* ================== EXISTING STYLES (NO CHANGES) ================== */
+/* ================== EXISTING STYLES ================== */
 .pos-wrapper {
     display: flex;
     gap: 20px;
@@ -103,9 +103,10 @@
 .item-row { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 24px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 20px; }
 .item-thumb { width: 90px; height: 90px; border-radius: 20px; object-fit: cover; }
 
-.side-header { padding: 20px; border-bottom: 1px solid var(--border-soft); background: var(--bg-soft); border-radius: 30px 30px 0 0; }
+.side-header { padding: 20px; border-bottom: 1px solid var(--border-soft); background: var(--bg-soft); border-radius: 30px 30px 0 0; position: relative;}
 .side-body { flex: 1; overflow-y: auto; padding: 20px; }
-.side-footer { padding: 20px; background: var(--bg-soft); border-radius: 0 0 30px 30px; }
+.side-footer { padding: 20px; background: var(--bg-soft); border-radius: 0 0 30px 30px; position: sticky; bottom: 0; z-index: 10; border-top: 1px solid var(--border-soft); }
+
 .served-item { padding: 8px 0; border-bottom: 1px solid var(--border-soft); opacity: 0.8; font-size: 14px; }
 .new-item-card { background: var(--bg-soft); border-radius: 15px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--accent); }
 
@@ -148,18 +149,6 @@
 .tax-line { font-size: 14px; color: #a1a1a1; display: flex; justify-content: space-between; margin-bottom: 6px; }
 .tax-line.discount { color: #f87171; }
 
-/* ================== ADDITIONAL OPTIMIZATIONS (NEW) ================== */
-
-/* 1. Sidebar Sticky Footer */
-.side-order-panel { height: 100%; position: relative; }
-.side-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    border-top: 1px solid var(--border-soft);
-}
-
-/* 2. Horizontal Category Bar */
 .category-scroll-nav {
     display: flex;
     overflow-x: auto;
@@ -186,13 +175,38 @@
     border-color: var(--accent);
 }
 
-/* 3. Search Bar */
 .search-box-pos {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-soft) !important;
     color: white !important;
     border-radius: 50px !important;
     padding: 8px 20px !important;
+}
+
+.clear-cart-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border: 1px solid #f87171;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.clear-cart-btn:hover {
+    background: #f87171;
+    color: white;
+}
+
+#billBtn:disabled {
+    background: #444 !important;
+    color: #888 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 {% endblock %}
 
@@ -201,10 +215,12 @@
     <div class="pos-wrapper">
         <div class="left-content">
             <div id="tableDashboard" class="pos-screen active">
-                <h3 class="fw-bold mb-4 text-white">Table Dashboard</h3>
-                <div class="cat-grid">
+                <div class="mb-4">
+                    <h3 class="fw-bold text-white">Table Dashboard</h3>
+                </div>
+                <div class="cat-grid" id="tableGrid">
                     {% for table in tables %}
-                    <div class="cat-card" onclick="startTableOrder('{{ table.id }}', '{{ table.number }}', '{{ table.is_occupied|lower }}')">
+                    <div class="cat-card table-node" data-table-num="{{ table.number }}" onclick="startTableOrder('{{ table.id }}', '{{ table.number }}', '{{ table.is_occupied|lower }}')">
                         <div class="cat-overlay" style="background: {% if table.is_occupied %}#f87171{% else %}var(--accent){% endif %};">
                             <div class="text-center">
                                 <div class="h2 fw-bold text-white mb-0">T-{{ table.number }}</div>
@@ -217,13 +233,18 @@
             </div>
 
             <div id="catScreen" class="pos-screen">
-                <div class="mb-4">
-                    <button class="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-bold" onclick="showScreen('tableDashboard')">← BACK TO DASHBOARD</button>
-                    <h3 class="fw-bold mt-3 text-white">Select Category</h3>
+                <div class="mb-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <button class="btn btn-sm btn-dark rounded-pill px-4 py-2 fw-bold" onclick="showScreen('tableDashboard')">← BACK TO TABLES</button>
+                        <h3 class="fw-bold mt-3 text-white">Select Category</h3>
+                    </div>
+                    <div style="width: 250px;">
+                        <input type="text" id="catSearch" class="form-control search-box-pos" placeholder="Search dish..." onkeyup="universalItemSearch(this.value)">
+                    </div>
                 </div>
-                <div class="cat-grid">
+                <div class="cat-grid" id="categoryGrid">
                     {% for cat in categories %}
-                    <div class="cat-card" onclick="openCategory('cat-{{ cat.id }}', '{{ cat.name }}')">
+                    <div class="cat-card category-node" onclick="openCategory('cat-{{ cat.id }}', '{{ cat.name }}')">
                         <img src="{% if cat.image %}{% if 'http' in cat.image.name %}{{ cat.image.name }}{% else %}{{ cat.image.url }}{% endif %}{% else %}https://placehold.co/400x400{% endif %}" style="width:100%;height:100%;object-fit:cover;">
                         <div class="cat-overlay"><span class="cat-name">{{ cat.name }}</span></div>
                     </div>
@@ -280,6 +301,7 @@
             <div class="side-header">
                 <h5 class="fw-bold mb-0 text-white">Table <span id="summaryTable"></span></h5>
                 <small class="text-muted">Order Tracking</small>
+                <button class="clear-cart-btn" onclick="clearFullOrder()">CLEAR</button>
             </div>
             <div class="side-body" id="summaryList"></div>
             <div class="side-footer">
@@ -306,7 +328,7 @@
 
                     <div class="row g-2">
                         <div class="col-6"><button type="button" class="btn btn-warning w-100 py-3 fw-bold" onclick="submitPOS('KOT')">SEND KOT</button></div>
-                        <div class="col-6"><button type="button" class="btn w-100 py-3 fw-bold" style="background:#89ca9e; color:#1a1a1a;" onclick="submitPOS('BILL')">BILL</button></div>
+                        <div class="col-6"><button type="button" id="billBtn" class="btn w-100 py-3 fw-bold" style="background:#89ca9e; color:#1a1a1a;" onclick="submitPOS('BILL')" disabled>BILL</button></div>
                     </div>
                 </form>
             </div>
@@ -397,21 +419,102 @@
 </div>
 
 <script>
-/* ================== EXISTING JS LOGIC (NO CHANGES) ================== */
 let cart = {};
 let tableServedItems = [];
+
+// Search only triggers once a table is selected and user is on Category/Item screens
+// NEW: Fixed Focus Transfer Logic
+function universalItemSearch(query) {
+    const originalInput = document.activeElement;
+    query = query.toLowerCase().trim();
+
+    // 1. Sync values between Cat Search and Menu Search
+    $('#catSearch, #menuSearch').not(originalInput).val(query);
+
+    if (query.length > 0) {
+        // 2. Agar user Category screen par hai, toh Item Screen par switch karo
+        if (!$('#itemScreen').hasClass('active')) {
+            // Hum showScreen() use nahi karenge kyunki wo heavy hai, direct switch karenge
+            $('.pos-screen').removeClass('active');
+            $('#itemScreen').addClass('active');
+            $('#sidePanel').show();
+
+            // 3. BRAHMASTRA: Cursor ko turant Andar wale Search Bar (menuSearch) par shift karo
+            setTimeout(() => {
+                const innerInput = document.getElementById('menuSearch');
+                if (innerInput) {
+                    innerInput.focus();
+                    // Cursor ko text ke end mein set karne ke liye
+                    const len = innerInput.value.length;
+                    innerInput.setSelectionRange(len, len);
+                }
+            }, 10); // 10ms ka delay browser ko render karne ka time deta hai
+        }
+        filterMenu(query);
+    }
+}
+
+// 2. Clear Order Function (Jiski Error aa rahi thi)
+function clearFullOrder() {
+    if(confirm("Are you sure you want to clear current selections?")) {
+        cart = {};
+        tableServedItems = [];
+
+        // UI Reset: Saare Quantity controls ko wapas original button mein badlo
+        $('.qty-wrapper-pill').each(function() {
+            const $parent = $(this).closest('.p-pill');
+            const originalLabel = $parent.data('label');
+            $parent.addClass('bg-soft border').html(originalLabel).css({'background':'', 'border':'', 'padding':''});
+        });
+
+        // Instructions/Notes chhupao
+        $('.notes-input-wrapper, .add-note-btn').hide();
+
+        renderSummary();
+        showScreen('tableDashboard'); // Wapas dashboard par le jao
+    }
+}
+
+function filterMenu(query) {
+    query = query.toLowerCase();
+    if (query.length > 0) {
+        $('.cat-nav-pill').removeClass('active');
+        $('.item-node').each(function() {
+            const itemName = $(this).find('.h4').text().toLowerCase();
+            $(this).toggle(itemName.includes(query));
+        });
+    } else {
+        const activeCatId = $('.cat-nav-pill.active').attr('id')?.replace('nav-', '');
+        if (activeCatId) {
+            $('.item-node').hide();
+            $('.' + activeCatId).fadeIn(100);
+        } else {
+             $('.item-node').show();
+        }
+    }
+}
 
 function showScreen(screenId) {
     $('.pos-screen').removeClass('active');
     $('#' + screenId).addClass('active');
-    if(screenId === 'tableDashboard') { $('#sidePanel').fadeOut(200); cart = {}; }
-    else { $('#sidePanel').css('display', 'flex').hide().fadeIn(200); }
+
+    if(screenId === 'tableDashboard') {
+        $('#sidePanel').fadeOut(200);
+        cart = {};
+        // Reset search inputs when returning to dashboard
+        $('#catSearch, #menuSearch').val('');
+    } else {
+        $('#sidePanel').css('display', 'flex').hide().fadeIn(200);
+    }
     window.scrollTo(0,0);
 }
 
 function startTableOrder(id, num, isOccupied) {
     $('#fTableId').val(id);
     $('#summaryTable').text(num);
+    // Clear search before starting new order
+    $('#catSearch, #menuSearch').val('');
+
     if(isOccupied === 'true') {
         $.get(`/billing/api/table-order/${id}/`, function(response) {
             tableServedItems = response.items;
@@ -422,6 +525,16 @@ function startTableOrder(id, num, isOccupied) {
         renderSummary();
     }
     showScreen('catScreen');
+}
+
+function openCategory(id, name) {
+    $('#activeCatTitle').text(name);
+    $('.cat-nav-pill').removeClass('active');
+    $('#nav-' + id).addClass('active');
+    $('#menuSearch').val(''); // Clear item search when switching category
+    $('.item-node').hide();
+    $('.' + id).fadeIn(200);
+    showScreen('itemScreen');
 }
 
 function addToCart(id, name, price, size) {
@@ -439,7 +552,6 @@ function renderInlineControls(id, size) {
     const key = id + '_' + size;
     const item = cart[key];
     const $btn = $(`#btn-${id}-${size}`);
-
     if(item && item.qty > 0) {
         $btn.removeClass('p-pill bg-soft border').html(`
             <div class="qty-wrapper-pill">
@@ -452,11 +564,8 @@ function renderInlineControls(id, size) {
     } else {
         const originalLabel = $btn.data('label');
         $btn.addClass('p-pill bg-soft border').html(originalLabel).css({'background':'', 'border':'', 'padding':''});
-
-        let otherSizeExists = Object.keys(cart).some(k => k.startsWith(id + '_'));
-        if(!otherSizeExists) {
-            $(`#note-trigger-${id}`).hide();
-            $(`#notes-wrapper-${id}`).hide();
+        if(!Object.keys(cart).some(k => k.startsWith(id + '_'))) {
+            $(`#note-trigger-${id}, #notes-wrapper-${id}`).hide();
         }
     }
 }
@@ -475,6 +584,7 @@ function renderSummary() {
     let subtotal = 0;
 
     if(tableServedItems.length > 0) {
+        $('#billBtn').prop('disabled', false);
         html += `<div class="fw-bold mb-2 text-muted small uppercase">SERVED ITEMS</div>`;
         tableServedItems.forEach(i => {
             let noteHtml = i.notes ? `<div class="small text-danger" style="font-size: 11px;">Note: ${i.notes}</div>` : '';
@@ -487,6 +597,8 @@ function renderSummary() {
                     </div>`;
             subtotal += (parseFloat(i.price) * parseInt(i.qty));
         });
+    } else {
+        $('#billBtn').prop('disabled', true);
     }
 
     if(Object.keys(cart).length > 0) {
@@ -537,33 +649,27 @@ function runRecalc() {
     const discPct = parseFloat($('#mDiscountPct').val()) || 0;
     const discAmt = sub * (discPct / 100);
     const taxableSub = sub - discAmt;
-    const cgst = taxableSub * 0.025;
-    const sgst = taxableSub * 0.025;
-    const finalTotal = Math.round(taxableSub + cgst + sgst);
+    const finalTotal = Math.round(taxableSub + (taxableSub * 0.05));
     $('#modalSubtotal').text(sub.toFixed(2));
     if (discPct > 0) {
         $('#discountLine').show();
         $('#discountLabel').text(discPct);
         $('#modalDiscountAmt').text(discAmt.toFixed(2));
-    } else {
-        $('#discountLine').hide();
-    }
-    $('#modalCGST').text(cgst.toFixed(2));
-    $('#modalSGST').text(sgst.toFixed(2));
+    } else { $('#discountLine').hide(); }
+    $('#modalCGST, #modalSGST').text((taxableSub * 0.025).toFixed(2));
     $('#modalGrandTotal').text(finalTotal);
-    const mode = $('#mPayMode').val();
-    if (mode === 'SPLIT') { $('#splitOnline').val(finalTotal); $('#splitCash').val(''); }
     runCashCalc();
 }
 
 function submitPOS(type) {
     if (type === 'BILL') {
+        if (tableServedItems.length === 0) { alert("Please send KOT first!"); return; }
         $('#mDiscountPct').val(0);
         runRecalc();
         togglePaymentUI();
         $('#checkoutModal').modal('show');
     } else {
-        if (Object.keys(cart).length === 0) { alert("Add items!"); return; }
+        if (Object.keys(cart).length === 0) { alert("Add new items for KOT!"); return; }
         $('#fPayload').val(JSON.stringify(cart));
         $('#fAction').val('KOT');
         $('#posActionForm').submit();
@@ -590,59 +696,5 @@ function finalizeBill() {
 
 function toggleNote(id) { $(`#notes-wrapper-${id}`).toggle(); $(`#note-trigger-${id}`).toggle(); }
 function updateNote(id, val) { Object.keys(cart).forEach(k => { if(k.startsWith(id + '_')) cart[k].notes = val; }); renderSummary(); }
-
-
-/* ================== NEW HELPER JS FUNCTIONS (OPTIMIZATION) ================== */
-
-// 1. Improved openCategory to highlight active pill
-function openCategory(id, name) {
-    $('#activeCatTitle').text(name);
-    $('.cat-nav-pill').removeClass('active');
-    $('#nav-' + id).addClass('active'); // Highlight horizontal pill
-    $('.item-node').hide();
-    $('.' + id).fadeIn(200);
-    $('#menuSearch').val(''); // Clear search when category changes
-    showScreen('itemScreen');
-}
-
-// 2. Menu Search Logic
-function filterMenu(query) {
-    query = query.toLowerCase();
-
-    if (query.length > 0) {
-        // Agar kuch type kiya hai toh puri categories ki restriction hata do
-        $('.cat-nav-pill').removeClass('active'); // Nav highlight hatao
-
-        $('.item-node').each(function() {
-            const itemName = $(this).find('.h4').text().toLowerCase();
-            if (itemName.includes(query)) {
-                $(this).fadeIn(100);
-            } else {
-                $(this).fadeOut(100);
-            }
-        });
-    } else {
-        // Agar search empty hai, toh wapas active category par chale jao
-        // Default behavior: pehli category dikhao ya jo selected thi
-        const activeCatId = $('.cat-nav-pill.active').attr('id')?.replace('nav-', '');
-        if (activeCatId) {
-            $('.item-node').hide();
-            $('.' + activeCatId).fadeIn(100);
-        }
-    }
-}
-
-// Category switch karne par search ko clear karne ka function
-function openCategory(id, name) {
-    $('#activeCatTitle').text(name);
-    $('.cat-nav-pill').removeClass('active');
-    $('#nav-' + id).addClass('active');
-
-    $('#menuSearch').val(''); // Search box khali karo
-    $('.item-node').hide();   // Sab hide karo
-    $('.' + id).fadeIn(200);  // Sirf selected category dikhao
-
-    showScreen('itemScreen');
-}
 </script>
 {% endblock %}
