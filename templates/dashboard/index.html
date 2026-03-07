@@ -2,178 +2,442 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block body %}
+
+<style>
+
+.dashboard-card{
+background:var(--bg-card);
+border-radius:14px;
+box-shadow:0 6px 18px rgba(0,0,0,0.06);
+border:1px solid var(--border-soft);
+}
+
+.dashboard-card h6{
+font-weight:600;
+color:var(--text-main);
+}
+
+canvas{
+max-height:300px;
+}
+
+thead{
+background:var(--bg-soft);
+}
+
+</style>
+
+
 <div class="container-fluid px-4 py-4">
 
-  <!-- HEADER + FILTER -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1">Dashboard</h3>
-      <div class="text-muted">
-        Showing: <strong>{{ label }}</strong>
-      </div>
-    </div>
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
 
-    <!-- FILTER FORM -->
-    <form method="get" class="d-flex gap-2 align-items-end">
+<div>
+<h3 class="fw-bold mb-1">Dashboard</h3>
+<div class="text-muted">
+Showing: <strong>{{ label }}</strong>
+</div>
+</div>
 
-      <!-- MODE -->
-      <select name="mode"
-              class="form-select"
-              onchange="this.form.submit()">
-        <option value="day" {% if mode == "day" %}selected{% endif %}>
-          Day
-        </option>
-        <option value="month" {% if mode == "month" %}selected{% endif %}>
-          Month
-        </option>
-        <option value="year" {% if mode == "year" %}selected{% endif %}>
-          Year
-        </option>
-      </select>
+<form method="get" class="d-flex gap-2 align-items-end">
 
-      <!-- DAY -->
-      {% if mode == "day" %}
-        <input type="date"
-               name="date"
-               value="{{ selected_date }}"
-               class="form-control"
-               onchange="this.form.submit()">
-      {% endif %}
+<select name="mode" class="form-select" onchange="this.form.submit()">
+<option value="day" {% if mode == "day" %}selected{% endif %}>Day</option>
+<option value="month" {% if mode == "month" %}selected{% endif %}>Month</option>
+<option value="year" {% if mode == "year" %}selected{% endif %}>Year</option>
+</select>
 
-      <!-- MONTH -->
-      {% if mode == "month" %}
-        <select name="month" class="form-select">
-          {% for m in months %}
-            <option value="{{ m }}"
-              {% if m == selected_month %}selected{% endif %}>
-              {{ m }}
-            </option>
-          {% endfor %}
-        </select>
+{% if mode == "day" %}
+<input type="date" name="date"
+value="{{ selected_date }}"
+class="form-control"
+onchange="this.form.submit()">
+{% endif %}
 
-        <input type="number"
-               name="year"
-               value="{{ selected_year }}"
-               class="form-control"
-               placeholder="Year">
+{% if mode == "month" %}
+<select name="month" class="form-select">
+{% for m in months %}
+<option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
+{{ m }}
+</option>
+{% endfor %}
+</select>
 
-        <button class="btn btn-primary">
-          Apply
-        </button>
-      {% endif %}
+<input type="number" name="year"
+value="{{ selected_year }}"
+class="form-control"
+placeholder="Year">
 
-      <!-- YEAR -->
-      {% if mode == "year" %}
-        <input type="number"
-               name="year"
-               value="{{ selected_year }}"
-               class="form-control"
-               placeholder="Year"
-               onchange="this.form.submit()">
-      {% endif %}
+<button class="btn btn-primary">Apply</button>
+{% endif %}
 
-    </form>
-  </div>
+{% if mode == "year" %}
+<input type="number" name="year"
+value="{{ selected_year }}"
+class="form-control"
+onchange="this.form.submit()">
+{% endif %}
 
-  <!-- KPI ROW 1 -->
-  <div class="row g-4 mb-4">
+</form>
+</div>
 
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">Total Revenue</div>
-        <div class="fs-2 fw-bold">
-          ₹{{ total_sales|floatformat:2 }}
-        </div>
-      </div>
-    </div>
 
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">Total Bills</div>
-        <div class="fs-2 fw-bold">
-          {{ total_bills }}
-        </div>
-      </div>
-    </div>
 
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">Items Sold</div>
-        <div class="fs-2 fw-bold">
-          {{ total_qty }}
-        </div>
-      </div>
-    </div>
+<!-- CHARTS -->
+<div class="row g-4 mb-4">
 
-  </div>
+<div class="col-lg-6">
+<div class="dashboard-card p-4">
+<h6 class="mb-3">Hourly Sales</h6>
+<canvas id="hourlyChart"></canvas>
+</div>
+</div>
 
-  <!-- KPI ROW 2 -->
-  <div class="row g-4 mb-4">
-
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">Average Bill</div>
-        <div class="fs-4 fw-semibold">
-          ₹{{ avg_bill|floatformat:2 }}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">GST Collected</div>
-        <div class="fs-4 fw-semibold">
-          ₹{{ total_gst|floatformat:2 }}
-        </div>
-      </div>
-    </div>
-
-    <div class="col-lg-4">
-      <div class="dashboard-card p-4 rounded-3 h-100">
-        <div class="text-muted small mb-1">Discount Given</div>
-        <div class="fs-4 fw-semibold text-danger">
-          − ₹{{ total_discount|floatformat:2 }}
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- TOP ITEMS -->
-  <div class="dashboard-card rounded-3 p-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="fw-bold mb-0">Top Selling Items</h6>
-    </div>
-
-    {% if top_items %}
-      <div class="table-responsive">
-        <table class="table table-sm mb-0 theme-table">
-          <thead>
-            <tr class="small">
-              <th>Item</th>
-              <th class="text-center">Qty</th>
-              <th class="text-end">Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for i in top_items %}
-              <tr>
-                <td class="fw-medium">{{ i.item__name }}</td>
-                <td class="text-center">{{ i.qty }}</td>
-                <td class="text-end fw-semibold">
-                  ₹{{ i.revenue|floatformat:2 }}
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="text-muted small">No sales yet.</div>
-    {% endif %}
-
-  </div>
+<div class="col-lg-6">
+<div class="dashboard-card p-4">
+<h6 class="mb-3">Category Revenue</h6>
+<canvas id="categoryChart"></canvas>
+</div>
+</div>
 
 </div>
+
+
+<div class="row g-4 mb-4">
+
+<div class="col-lg-6">
+<div class="dashboard-card p-4">
+<h6 class="mb-3">Payment Mode Split</h6>
+<canvas id="paymentChart"></canvas>
+</div>
+</div>
+
+<div class="col-lg-6">
+<div class="dashboard-card p-4">
+<h6 class="mb-3">Top Revenue Items</h6>
+<canvas id="itemChart"></canvas>
+</div>
+</div>
+
+</div>
+
+
+
+<!-- KPI -->
+<div class="row g-4 mb-4">
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">Total Revenue</div>
+<div class="fs-2 fw-bold text-success">
+₹{{ total_sales|floatformat:2 }}
+</div>
+</div>
+</div>
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">Total Bills</div>
+<div class="fs-2 fw-bold text-primary">
+{{ total_bills }}
+</div>
+</div>
+</div>
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">Items Sold</div>
+<div class="fs-2 fw-bold text-info">
+{{ total_qty }}
+</div>
+</div>
+</div>
+
+</div>
+
+
+
+<div class="row g-4 mb-4">
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">Average Bill</div>
+<div class="fs-4 fw-semibold">
+₹{{ avg_bill|floatformat:2 }}
+</div>
+</div>
+</div>
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">GST Collected</div>
+<div class="fs-4 fw-semibold text-warning">
+₹{{ total_gst|floatformat:2 }}
+</div>
+</div>
+</div>
+
+<div class="col-lg-4">
+<div class="dashboard-card p-4">
+<div class="text-muted small">Discount Given</div>
+<div class="fs-4 fw-semibold text-danger">
+− ₹{{ total_discount|floatformat:2 }}
+</div>
+</div>
+</div>
+
+</div>
+
+
+
+<!-- TOP ITEMS TABLE -->
+<div class="dashboard-card p-4">
+
+<h6 class="fw-bold mb-3">Top Selling Items</h6>
+
+<div class="table-responsive">
+
+<table class="table table-sm align-middle">
+
+<thead>
+<tr>
+<th>Item</th>
+<th class="text-center">Qty</th>
+<th class="text-end">Revenue</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for i in top_items %}
+<tr>
+<td class="fw-medium">{{ i.item__name }}</td>
+<td class="text-center">{{ i.qty }}</td>
+<td class="text-end fw-semibold">
+₹{{ i.revenue|floatformat:2 }}
+</td>
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+</div>
+
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+let charts = []
+
+function getThemeColors(){
+
+    const styles = getComputedStyle(document.documentElement)
+
+    return {
+        text: styles.getPropertyValue("--text-main").trim() || "#374151",
+        grid: styles.getPropertyValue("--border-soft").trim() || "rgba(0,0,0,0.08)",
+        card: styles.getPropertyValue("--bg-card").trim() || "#ffffff"
+    }
+
+}
+
+function destroyCharts(){
+    charts.forEach(c => c.destroy())
+    charts=[]
+}
+
+function buildCharts(){
+
+    destroyCharts()
+
+    const theme = getThemeColors()
+
+    Chart.defaults.color = theme.text
+    Chart.defaults.borderColor = theme.grid
+    Chart.defaults.font.family = "Inter, sans-serif"
+
+    Chart.defaults.plugins.legend.labels.color = theme.text
+
+    Chart.defaults.plugins.tooltip.backgroundColor = theme.card
+    Chart.defaults.plugins.tooltip.titleColor = theme.text
+    Chart.defaults.plugins.tooltip.bodyColor = theme.text
+    Chart.defaults.plugins.tooltip.borderColor = theme.grid
+
+
+    /* ---------------- HOURLY ---------------- */
+
+    const hourlyLabels=[{% for h in hourly_sales %}"{{h.hour}}:00",{% endfor %}]
+    const hourlyData=[{% for h in hourly_sales %}{{h.revenue|floatformat:2}},{% endfor %}]
+
+    charts.push(
+    new Chart(document.getElementById("hourlyChart"),{
+
+        type:"line",
+
+        data:{
+            labels:hourlyLabels,
+            datasets:[{
+                label:"Revenue",
+                data:hourlyData,
+                borderColor:"#4e73df",
+                backgroundColor:"rgba(78,115,223,0.18)",
+                fill:true,
+                tension:0.4
+            }]
+        },
+
+        options:{
+            scales:{
+                x:{
+                    grid:{display:false},
+                    ticks:{color:theme.text}
+                },
+                y:{
+                    grid:{color:theme.grid},
+                    ticks:{color:theme.text}
+                }
+            }
+        }
+
+    })
+    )
+
+
+    /* ---------------- CATEGORY ---------------- */
+
+    const categoryLabels=[{% for c in category_sales %}"{{c.item__category__name}}",{% endfor %}]
+    const categoryData=[{% for c in category_sales %}{{c.revenue|floatformat:2}},{% endfor %}]
+
+    charts.push(
+    new Chart(document.getElementById("categoryChart"),{
+
+        type:"bar",
+
+        data:{
+            labels:categoryLabels,
+            datasets:[{
+                label:"Revenue",
+                data:categoryData,
+                backgroundColor:"#36b9cc",
+                borderRadius:6
+            }]
+        },
+
+        options:{
+            scales:{
+                x:{
+                    grid:{display:false},
+                    ticks:{color:theme.text}
+                },
+                y:{
+                    grid:{color:theme.grid},
+                    ticks:{color:theme.text}
+                }
+            }
+        }
+
+    })
+    )
+
+
+    /* ---------------- PAYMENT ---------------- */
+
+    const paymentLabels=[{% for p in payment_split %}"{{p.payment_mode}}",{% endfor %}]
+    const paymentData=[{% for p in payment_split %}{{p.revenue|floatformat:2}},{% endfor %}]
+
+    charts.push(
+    new Chart(document.getElementById("paymentChart"),{
+
+        type:"doughnut",
+
+        data:{
+            labels:paymentLabels,
+            datasets:[{
+                data:paymentData,
+                backgroundColor:["#1cc88a","#4e73df","#f6c23e","#e74a3b"],
+                borderWidth:0
+            }]
+        },
+
+        options:{
+            plugins:{
+                legend:{
+                    labels:{color:theme.text}
+                }
+            }
+        }
+
+    })
+    )
+
+
+    /* ---------------- TOP ITEMS ---------------- */
+
+    const itemLabels=[{% for i in top_revenue_items %}"{{i.item__name}}",{% endfor %}]
+    const itemData=[{% for i in top_revenue_items %}{{i.revenue|floatformat:2}},{% endfor %}]
+
+    charts.push(
+    new Chart(document.getElementById("itemChart"),{
+
+        type:"bar",
+
+        data:{
+            labels:itemLabels,
+            datasets:[{
+                data:itemData,
+                backgroundColor:"#f6c23e",
+                borderRadius:6
+            }]
+        },
+
+        options:{
+            indexAxis:"y",
+
+            plugins:{
+                legend:{display:false}
+            },
+
+            scales:{
+                x:{
+                    grid:{color:theme.grid},
+                    ticks:{color:theme.text}
+                },
+                y:{
+                    grid:{display:false},
+                    ticks:{color:theme.text}
+                }
+            }
+        }
+
+    })
+    )
+
+}
+
+buildCharts()
+
+
+/* -------------------- */
+/* AUTO REFRESH ON THEME CHANGE */
+/* -------------------- */
+
+const observer = new MutationObserver(()=>{
+    buildCharts()
+})
+
+observer.observe(document.documentElement,{
+    attributes:true,
+    attributeFilter:["data-theme","class"]
+})
+
+</script>
+
 {% endblock %}
