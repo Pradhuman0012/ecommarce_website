@@ -7,6 +7,8 @@ import win32api
 import win32print
 from django.conf import settings
 from django.db import transaction
+from django.db.models import IntegerField
+from django.db.models.functions import Cast, Substr
 from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
@@ -257,7 +259,10 @@ def send_to_printer(file_relative_path, printer_name):
 
 @staff_required
 def table_order_view(request):
-    tables = Table.objects.all().order_by("number")
+    tables = Table.objects.annotate(
+        num=Cast(Substr("number", 2), IntegerField())
+    ).order_by("num")
+
     items = Item.objects.filter(is_available=True)
     categories = Category.objects.all()
 
