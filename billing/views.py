@@ -1,5 +1,6 @@
 import json
 import os
+import time
 from decimal import Decimal
 from io import BytesIO
 
@@ -323,7 +324,10 @@ def table_order_view(request):
 
                         draw_kitchen_pdf(recipe=recipe, output=recipe_buffer)
 
-                        recipe_filename = f"KOT_{order.id}_{recipe.station}.pdf"
+                        timestamp = int(time.time())
+                        recipe_filename = (
+                            f"KOT_{order.id}_{timestamp}_{recipe.station}.pdf"
+                        )
 
                         save_pdf_once(
                             pdf_buffer=recipe_buffer,
