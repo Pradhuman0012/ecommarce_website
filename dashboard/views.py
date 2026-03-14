@@ -7,10 +7,10 @@ from django.shortcuts import render
 from django.utils.timezone import localdate
 
 from billing.models import Bill, BillItem
-from core.decorators import admin_required
+from core.decorators import staff_required
 
 
-@admin_required
+@staff_required
 def dashboard_home(request):
     mode = request.GET.get("mode", "day")
 
