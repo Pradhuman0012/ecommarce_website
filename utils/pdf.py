@@ -137,9 +137,10 @@ def draw_bill_pdf(*, bill, output) -> None:
     p.save()
 
 
-def draw_kitchen_pdf(*, recipe, output) -> None:
+def draw_kitchen_pdf(*, recipe, output, items=None) -> None:
     """Ultra-Bold Kitchen Slip"""
-    items = list(recipe.items.all())
+    if items is None:
+        items = list(recipe.items.all())
     local_dt = timezone.localtime(recipe.created_at)
     width, height = 80 * mm, 180 * mm
     p = canvas.Canvas(output, pagesize=(width, height))

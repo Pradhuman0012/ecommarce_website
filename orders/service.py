@@ -12,7 +12,7 @@ def generate_recipes_for_order(order, items):
         station = oi.item.station
         station_map.setdefault(station, []).append(oi)
 
-    recipes = []
+    recipes_with_items = []
 
     for station, station_items in station_map.items():
 
@@ -21,7 +21,7 @@ def generate_recipes_for_order(order, items):
             station=station,
         )
 
-        RecipeItem.objects.bulk_create(
+        new_items = RecipeItem.objects.bulk_create(
             [
                 RecipeItem(
                     recipe=recipe,
@@ -35,6 +35,6 @@ def generate_recipes_for_order(order, items):
             ]
         )
 
-        recipes.append(recipe)
+        recipes_with_items.append((recipe, new_items))
 
-    return recipes
+    return recipes_with_items

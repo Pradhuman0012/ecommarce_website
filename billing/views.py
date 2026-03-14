@@ -125,20 +125,21 @@ def create_bill(request):
             # --------------------
             unsent_items = order.items.filter(is_sent_to_kitchen=False)
 
-            recipes = generate_recipes_for_order(order, items=unsent_items)
+            recipes_with_items = generate_recipes_for_order(order, items=unsent_items)
 
             unsent_items.update(is_sent_to_kitchen=True)
 
             # --------------------
             # 7. PRINT KITCHEN SLIPS
             # --------------------
-            for recipe in recipes:
+            for recipe, recipe_items in recipes_with_items:
 
                 recipe_buffer = BytesIO()
 
                 draw_kitchen_pdf(
                     recipe=recipe,
                     output=recipe_buffer,
+                    items=recipe_items,
                 )
 
                 recipe_filename = f"order_{order.id}_{recipe.station}.pdf"
@@ -318,13 +319,17 @@ def table_order_view(request):
 
                 if unsent_items.exists():
 
-                    recipes = generate_recipes_for_order(order, items=unsent_items)
+                    recipes_with_items = generate_recipes_for_order(
+                        order, items=unsent_items
+                    )
 
-                    for recipe in recipes:
+                    for recipe, recipe_items in recipes_with_items:
 
                         recipe_buffer = BytesIO()
 
-                        draw_kitchen_pdf(recipe=recipe, output=recipe_buffer)
+                        draw_kitchen_pdf(
+                            recipe=recipe, output=recipe_buffer, items=recipe_items
+                        )
 
                         timestamp = int(time.time())
                         recipe_filename = (
