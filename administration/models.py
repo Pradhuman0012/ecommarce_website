@@ -27,9 +27,12 @@ class DailyCashCounter(models.Model):
 
 class CashTransaction(models.Model):
     """
-    Tracks cash taken OUT from the counter for supplies, expenses, etc.
-    Linked to a DailyCashCounter row.
+    Tracks cash transactions (IN/OUT) for the counter.
     """
+
+    class TransactionType(models.TextChoices):
+        IN = "IN", "Cash In"
+        OUT = "OUT", "Cash Out"
 
     daily_counter = models.ForeignKey(
         DailyCashCounter,
@@ -38,6 +41,11 @@ class CashTransaction(models.Model):
     )
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     reason = models.CharField(max_length=255)
+    tx_type = models.CharField(
+        max_length=10,
+        choices=TransactionType.choices,
+        default=TransactionType.OUT,
+    )
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

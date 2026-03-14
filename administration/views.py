@@ -147,12 +147,26 @@ def cash_counter_view(request):
             counter.notes = request.POST.get("notes", "")
             counter.save()
 
+        elif action == "add_cash_in":
+            amount = Decimal(request.POST.get("amount") or 0)
+            reason = request.POST.get("reason", "")
+            if amount > 0:
+                CashTransaction.objects.create(
+                    daily_counter=counter,
+                    amount=amount,
+                    reason=reason,
+                    tx_type=CashTransaction.TransactionType.IN,
+                )
+
         elif action == "add_withdrawal":
             amount = Decimal(request.POST.get("amount") or 0)
             reason = request.POST.get("reason", "")
             if amount > 0:
                 CashTransaction.objects.create(
-                    daily_counter=counter, amount=amount, reason=reason
+                    daily_counter=counter,
+                    amount=amount,
+                    reason=reason,
+                    tx_type=CashTransaction.TransactionType.OUT,
                 )
 
         elif action == "delete_withdrawal":
@@ -166,18 +180,25 @@ def cash_counter_view(request):
         bill.total_amount()
         for bill in Bill.objects.filter(created_at__date=today, payment_mode="CASH")
     )
+
     # Add cash portion from SPLIT bills
     today_cash_bills += sum(
-        (bill.cash_received or 0)
+        (bill.cash_received or Decimal("0"))
         for bill in Bill.objects.filter(created_at__date=today, payment_mode="SPLIT")
     )
 
-    withdrawals = counter.transactions.all()
+    withdrawals = counter.transactions.filter(
+        tx_type=CashTransaction.TransactionType.OUT
+    )
     total_withdrawn = withdrawals.aggregate(total=Sum("amount"))["total"] or Decimal(
         "0"
     )
 
-    expected_cash = counter.opening_balance + today_cash_bills - total_withdrawn
+    manual_in = counter.transactions.filter(tx_type=CashTransaction.TransactionType.IN)
+    total_manual_in = manual_in.aggregate(total=Sum("amount"))["total"] or Decimal("0")
+
+    today_cash_in = today_cash_bills + total_manual_in
+    expected_cash = counter.opening_balance + today_cash_in - total_withdrawn
 
     # Today's all bills for display
     today_bills = Bill.objects.filter(created_at__date=today).order_by("-created_at")
@@ -187,8 +208,9 @@ def cash_counter_view(request):
         "administration/cash_counter.html",
         {
             "counter": counter,
-            "today_cash_in": today_cash_bills,
-            "withdrawals": withdrawals,
+            "today_cash_bills": today_cash_bills,
+            "total_manual_in": total_manual_in,
+            "all_transactions": counter.transactions.all(),
             "total_withdrawn": total_withdrawn,
             "expected_cash": expected_cash,
             "today_bills": today_bills,
