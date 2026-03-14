@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}{{ staff.name }} | Staff Profile{% endblock %}
+
+{% block styleblock %}
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-nav a {
+    background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-muted);
+    padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 12px;
+    text-decoration: none; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.admin-nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.back-btn {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 50px;
+    padding: 8px 20px; text-decoration: none; color: var(--text-main); font-weight: 700;
+    font-size: 13px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.profile-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 20px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.profile-hero::before {
+    content: ''; position: absolute; top: -40%; right: -10%;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); border-radius: 50%;
+}
+.profile-avatar {
+    width: 80px; height: 80px; border-radius: 20px;
+    background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center;
+    font-size: 32px; flex-shrink: 0; overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.1);
+}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-name { font-size: 1.6rem; font-weight: 800; color: white; }
+.profile-role { font-size: 14px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+.info-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 16px; padding: 22px;
+    height: 100%;
+}
+.detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--border-soft);
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+.detail-value { font-size: 14px; color: var(--text-main); font-weight: 700; }
+
+.status-badge {
+    padding: 6px 14px; border-radius: 50px; font-size: 11px; font-weight: 800; text-transform: uppercase;
+}
+.status-active { background: rgba(34,197,94,0.15); color: #22c55e; }
+.status-inactive { background: rgba(248,113,113,0.15); color: #f87171; }
+
+.admin-btn {
+    background: var(--accent); color: white; border: none; border-radius: 10px;
+    padding: 10px 20px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    transition: 0.2s;
+}
+.admin-btn:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+.btn-outline-active { border-color: #f87171 !important; color: #f87171 !important; }
+.btn-outline-inactive { border-color: #22c55e !important; color: #22c55e !important; }
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a href="{% url 'administration:staff_list' %}" class="back-btn">← Staff List</a>
+        <div class="d-flex gap-2">
+            <span class="status-badge {% if staff.is_active %}status-active{% else %}status-inactive{% endif %}">
+                {% if staff.is_active %}ACTIVE TEAM MEMBER{% else %}INACTIVE / LEFT{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- PROFILE HERO -->
+    <div class="profile-hero shadow-lg">
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="profile-avatar">
+                        {% if staff.photo %}<img src="{{ staff.photo.url }}" alt="{{ staff.name }}">{% else %}👤{% endif %}
+                    </div>
+                    <div>
+                        <div class="profile-role mb-1">{{ staff.role }}</div>
+                        <div class="profile-name mb-1">{{ staff.name }}</div>
+                        <div style="color:rgba(255,255,255,0.4); font-size:12px;">Joined on {{ staff.joined_at|date:"d M Y" }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 text-md-end mt-4 mt-md-0">
+                <div class="d-inline-block text-center px-4 py-2 rounded-4" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
+                    <div style="color:var(--accent); font-size:1.8rem; font-weight:900;">₹{{ staff.salary|floatformat:0 }}</div>
+                    <div style="color:rgba(255,255,255,0.4); font-size:10px; font-weight:700; text-transform:uppercase;">Monthly Salary</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- PERSONAL DETAILS -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <h6 class="fw-bold mb-4" style="color:var(--text-main); display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.2rem;">📝</span> Professional Information
+                </h6>
+
+                <div class="detail-row">
+                    <span class="detail-label">Full Name</span>
+                    <span class="detail-value">{{ staff.name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Designation / Role</span>
+                    <span class="detail-value">{{ staff.role }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Contact Number</span>
+                    <span class="detail-value">{% if staff.phone %}+91 {{ staff.phone }}{% else %}Not Provided{% endif %}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Aadhar Card Number</span>
+                    <span class="detail-value">{{ staff.aadhar_number|default:"Not Provided" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Salary (Monthly)</span>
+                    <span class="detail-value" style="color:var(--accent);">₹{{ staff.salary }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Employment Status</span>
+                    <span class="detail-value">{% if staff.is_active %}Active{% else %}Inactive{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECENT ACTIVITY / NOTES -->
+        <div class="col-lg-6">
+            <div class="info-card">
+                <h6 class="fw-bold mb-4" style="color:var(--text-main); display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.2rem;">📊</span> Quick Summary
+                </h6>
+                <div class="p-4 rounded-4 text-center mb-4" style="background:var(--bg-soft); border:1px dashed var(--border-soft);">
+                    <div class="text-muted mb-2" style="font-size:13px;">Member of Smart Dashboard Team</div>
+                    <div class="fw-bold" style="color:var(--text-main);">Joined {{ staff.joined_at|timesince }} ago</div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="alert alert-info border-0 rounded-4 p-3" style="background:rgba(99,102,241,0.08); font-size:13px; color:var(--text-main);">
+                        <strong>Note:</strong> Currently manual salary tracking is not active. Salary is calculated as flat monthly base rate.
+                    </div>
+                </div>
+
+                <div class="mt-5 pt-3 border-top border-soft">
+                    <div class="d-flex gap-2">
+                        <button class="btn admin-btn flex-grow-1" onclick="alert('Use Staff List to Edit Details')">EDIT PROFILE</button>
+                        <form method="POST" action="{% url 'administration:staff_list' %}" class="flex-grow-1" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="toggle">
+                            <input type="hidden" name="staff_id" value="{{ staff.id }}">
+                            <button type="submit" class="btn w-100 fw-bold rounded-3 {% if staff.is_active %}btn-outline-active{% else %}btn-outline-inactive{% endif %}" style="height:42px; font-size:12px; background:transparent;">
+                                {% if staff.is_active %}DEACTIVATE STAFF{% else %}ACTIVATE STAFF{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

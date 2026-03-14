@@ -1,443 +1,357 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}Sales Dashboard{% endblock %}
+
+{% block styleblock %}
+.dash-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+.dash-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(125,211,168,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.dash-hero .hero-value {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #7dd3a8;
+    line-height: 1;
+}
+.dash-hero .hero-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 22px;
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+.kpi-card .kpi-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 14px;
+}
+.kpi-card .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
+.kpi-card .kpi-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+.chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 24px;
+}
+.chart-card h6 { font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+canvas { max-height: 280px; }
+
+.filter-bar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 50px;
+    padding: 8px 8px 8px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.filter-bar select, .filter-bar input {
+    background: var(--bg-soft);
+    border: 1px solid var(--border-soft);
+    color: var(--text-main);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--accent); }
+
+.top-items-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 24px;
+}
+.item-rank {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--text-muted);
+}
+.item-rank.gold { background: rgba(246,194,62,0.15); color: #f6c23e; }
+.item-rank.silver { background: rgba(200,200,200,0.15); color: #aaa; }
+.item-rank.bronze { background: rgba(205,127,50,0.15); color: #cd7f32; }
+{% endblock %}
 
 {% block body %}
+<div class="container-fluid px-4 py-3">
 
-<style>
+    <!-- HERO + FILTER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0 text-white">Pradhuman's Café</h2>
+            <span class="text-muted small">Sales Overview</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'administration:dashboard' %}" class="btn btn-outline-light rounded-pill px-4 fw-bold" style="font-size:12px; border-color:rgba(255,255,255,0.2);">🛡️ ADMINISTRATION</a>
+            <a href="{% url 'billing:table_order' %}" class="btn btn-success rounded-pill px-4 fw-bold" style="font-size:12px; background:#00c853; border:none;">POS / BILLING</a>
+        </div>
+    </div>
+        <form method="get" class="filter-bar">
+            <select name="mode" onchange="this.form.submit()">
+                <option value="day" {% if mode == "day" %}selected{% endif %}>Daily</option>
+                <option value="month" {% if mode == "month" %}selected{% endif %}>Monthly</option>
+                <option value="year" {% if mode == "year" %}selected{% endif %}>Yearly</option>
+            </select>
+            {% if mode == "day" %}
+            <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()">
+            {% endif %}
+            {% if mode == "month" %}
+            <select name="month">
+                {% for m in months %}
+                <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year" value="{{ selected_year }}" style="width:90px;">
+            <button type="submit" class="btn btn-sm" style="background:var(--accent);color:white;border-radius:30px;padding:8px 18px;font-weight:700;">Go</button>
+            {% endif %}
+            {% if mode == "year" %}
+            <input type="number" name="year" value="{{ selected_year }}" style="width:90px;" onchange="this.form.submit()">
+            {% endif %}
+        </form>
+    </div>
 
-.dashboard-card{
-background:var(--bg-card);
-border-radius:14px;
-box-shadow:0 6px 18px rgba(0,0,0,0.06);
-border:1px solid var(--border-soft);
-}
+    <!-- HERO REVENUE CARD -->
+    <div class="dash-hero">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="hero-label mb-2">Total Revenue</div>
+                <div class="hero-value">₹{{ total_sales|floatformat:0 }}</div>
+            </div>
+            <div class="col-md-8">
+                <div class="row g-4 mt-2 mt-md-0">
+                    <div class="col-4 text-center">
+                        <div style="font-size:2rem;font-weight:800;color:white;">{{ total_bills }}</div>
+                        <div class="hero-label">Bills Generated</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div style="font-size:2rem;font-weight:800;color:white;">{{ total_qty }}</div>
+                        <div class="hero-label">Items Sold</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div style="font-size:2rem;font-weight:800;color:white;">₹{{ avg_bill|floatformat:0 }}</div>
+                        <div class="hero-label">Avg Bill</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-.dashboard-card h6{
-font-weight:600;
-color:var(--text-main);
-}
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(22,163,74,0.12);">💰</div>
+                <div class="kpi-value" style="color:#22c55e;">₹{{ total_sales|floatformat:2 }}</div>
+                <div class="kpi-label">Net Revenue</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(234,179,8,0.12);">📋</div>
+                <div class="kpi-value" style="color:#eab308;">₹{{ total_gst|floatformat:2 }}</div>
+                <div class="kpi-label">GST Collected</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.12);">🏷️</div>
+                <div class="kpi-value" style="color:#ef4444;">− ₹{{ total_discount|floatformat:2 }}</div>
+                <div class="kpi-label">Discount Given</div>
+            </div>
+        </div>
+    </div>
 
-canvas{
-max-height:300px;
-}
+    <!-- CHARTS ROW 1 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <h6>📈 Hourly Sales Trend</h6>
+                <canvas id="hourlyChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-card" style="height:100%;">
+                <h6>💳 Payment Split</h6>
+                <canvas id="paymentChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-thead{
-background:var(--bg-soft);
-}
+    <!-- CHARTS ROW 2 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>📦 Category Revenue</h6>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="chart-card">
+                <h6>🔥 Top Revenue Items</h6>
+                <canvas id="itemChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-</style>
-
-
-<div class="container-fluid px-4 py-4">
-
-<!-- HEADER -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-
-<div>
-<h3 class="fw-bold mb-1">Dashboard</h3>
-<div class="text-muted">
-Showing: <strong>{{ label }}</strong>
-</div>
-</div>
-
-<form method="get" class="d-flex gap-2 align-items-end">
-
-<select name="mode" class="form-select" onchange="this.form.submit()">
-<option value="day" {% if mode == "day" %}selected{% endif %}>Day</option>
-<option value="month" {% if mode == "month" %}selected{% endif %}>Month</option>
-<option value="year" {% if mode == "year" %}selected{% endif %}>Year</option>
-</select>
-
-{% if mode == "day" %}
-<input type="date" name="date"
-value="{{ selected_date }}"
-class="form-control"
-onchange="this.form.submit()">
-{% endif %}
-
-{% if mode == "month" %}
-<select name="month" class="form-select">
-{% for m in months %}
-<option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
-{{ m }}
-</option>
-{% endfor %}
-</select>
-
-<input type="number" name="year"
-value="{{ selected_year }}"
-class="form-control"
-placeholder="Year">
-
-<button class="btn btn-primary">Apply</button>
-{% endif %}
-
-{% if mode == "year" %}
-<input type="number" name="year"
-value="{{ selected_year }}"
-class="form-control"
-onchange="this.form.submit()">
-{% endif %}
-
-</form>
-</div>
-
-
-
-<!-- CHARTS -->
-<div class="row g-4 mb-4">
-
-<div class="col-lg-6">
-<div class="dashboard-card p-4">
-<h6 class="mb-3">Hourly Sales</h6>
-<canvas id="hourlyChart"></canvas>
-</div>
-</div>
-
-<div class="col-lg-6">
-<div class="dashboard-card p-4">
-<h6 class="mb-3">Category Revenue</h6>
-<canvas id="categoryChart"></canvas>
-</div>
-</div>
-
-</div>
-
-
-<div class="row g-4 mb-4">
-
-<div class="col-lg-6">
-<div class="dashboard-card p-4">
-<h6 class="mb-3">Payment Mode Split</h6>
-<canvas id="paymentChart"></canvas>
-</div>
-</div>
-
-<div class="col-lg-6">
-<div class="dashboard-card p-4">
-<h6 class="mb-3">Top Revenue Items</h6>
-<canvas id="itemChart"></canvas>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- KPI -->
-<div class="row g-4 mb-4">
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">Total Revenue</div>
-<div class="fs-2 fw-bold text-success">
-₹{{ total_sales|floatformat:2 }}
-</div>
-</div>
-</div>
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">Total Bills</div>
-<div class="fs-2 fw-bold text-primary">
-{{ total_bills }}
-</div>
-</div>
-</div>
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">Items Sold</div>
-<div class="fs-2 fw-bold text-info">
-{{ total_qty }}
-</div>
-</div>
-</div>
+    <!-- TOP SELLING TABLE -->
+    <div class="top-items-card">
+        <h6 class="fw-bold mb-3">🏆 Top Selling Items</h6>
+        <div class="table-responsive">
+            <table class="table theme-table mb-0">
+                <thead><tr><th>#</th><th>Item</th><th class="text-center">Qty Sold</th><th class="text-end">Revenue</th></tr></thead>
+                <tbody>
+                {% for i in top_items %}
+                <tr>
+                    <td><span class="item-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span></td>
+                    <td class="fw-bold">{{ i.item__name }}</td>
+                    <td class="text-center">{{ i.qty }}</td>
+                    <td class="text-end fw-bold" style="color:var(--accent);">₹{{ i.revenue|floatformat:0 }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 </div>
-
-
-
-<div class="row g-4 mb-4">
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">Average Bill</div>
-<div class="fs-4 fw-semibold">
-₹{{ avg_bill|floatformat:2 }}
-</div>
-</div>
-</div>
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">GST Collected</div>
-<div class="fs-4 fw-semibold text-warning">
-₹{{ total_gst|floatformat:2 }}
-</div>
-</div>
-</div>
-
-<div class="col-lg-4">
-<div class="dashboard-card p-4">
-<div class="text-muted small">Discount Given</div>
-<div class="fs-4 fw-semibold text-danger">
-− ₹{{ total_discount|floatformat:2 }}
-</div>
-</div>
-</div>
-
-</div>
-
-
-
-<!-- TOP ITEMS TABLE -->
-<div class="dashboard-card p-4">
-
-<h6 class="fw-bold mb-3">Top Selling Items</h6>
-
-<div class="table-responsive">
-
-<table class="table table-sm align-middle">
-
-<thead>
-<tr>
-<th>Item</th>
-<th class="text-center">Qty</th>
-<th class="text-end">Revenue</th>
-</tr>
-</thead>
-
-<tbody>
-
-{% for i in top_items %}
-<tr>
-<td class="fw-medium">{{ i.item__name }}</td>
-<td class="text-center">{{ i.qty }}</td>
-<td class="text-end fw-semibold">
-₹{{ i.revenue|floatformat:2 }}
-</td>
-</tr>
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-</div>
-
-</div>
-
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
+let charts = [];
 
-let charts = []
-
-function getThemeColors(){
-
-    const styles = getComputedStyle(document.documentElement)
-
+function getThemeColors() {
+    const s = getComputedStyle(document.documentElement);
     return {
-        text: styles.getPropertyValue("--text-main").trim() || "#374151",
-        grid: styles.getPropertyValue("--border-soft").trim() || "rgba(0,0,0,0.08)",
-        card: styles.getPropertyValue("--bg-card").trim() || "#ffffff"
-    }
-
+        text: s.getPropertyValue("--text-main").trim() || "#374151",
+        grid: s.getPropertyValue("--border-soft").trim() || "rgba(0,0,0,0.08)",
+        card: s.getPropertyValue("--bg-card").trim() || "#ffffff"
+    };
 }
 
-function destroyCharts(){
-    charts.forEach(c => c.destroy())
-    charts=[]
+function destroyCharts() { charts.forEach(c => c.destroy()); charts = []; }
+
+function buildCharts() {
+    destroyCharts();
+    const t = getThemeColors();
+    Chart.defaults.color = t.text;
+    Chart.defaults.borderColor = t.grid;
+    Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+    Chart.defaults.plugins.legend.labels.color = t.text;
+    Chart.defaults.plugins.tooltip.backgroundColor = t.card;
+    Chart.defaults.plugins.tooltip.titleColor = t.text;
+    Chart.defaults.plugins.tooltip.bodyColor = t.text;
+    Chart.defaults.plugins.tooltip.borderColor = t.grid;
+
+    // HOURLY
+    charts.push(new Chart(document.getElementById("hourlyChart"), {
+        type: "line",
+        data: {
+            labels: [{% for h in hourly_sales %}"{{h.hour}}:00",{% endfor %}],
+            datasets: [{
+                label: "Revenue",
+                data: [{% for h in hourly_sales %}{{h.revenue|floatformat:2}},{% endfor %}],
+                borderColor: "#7dd3a8",
+                backgroundColor: "rgba(125,211,168,0.12)",
+                fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4, pointBackgroundColor: "#7dd3a8"
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: t.text } },
+                y: { grid: { color: t.grid }, ticks: { color: t.text } }
+            }
+        }
+    }));
+
+    // CATEGORY
+    charts.push(new Chart(document.getElementById("categoryChart"), {
+        type: "bar",
+        data: {
+            labels: [{% for c in category_sales %}"{{c.item__category__name}}",{% endfor %}],
+            datasets: [{
+                label: "Revenue",
+                data: [{% for c in category_sales %}{{c.revenue|floatformat:2}},{% endfor %}],
+                backgroundColor: ["#7dd3a8","#4e73df","#f6c23e","#e74a3b","#36b9cc","#858796"],
+                borderRadius: 8, borderSkipped: false
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: t.text } },
+                y: { grid: { color: t.grid }, ticks: { color: t.text } }
+            }
+        }
+    }));
+
+    // PAYMENT
+    charts.push(new Chart(document.getElementById("paymentChart"), {
+        type: "doughnut",
+        data: {
+            labels: [{% for p in payment_split %}"{{p.payment_mode}}",{% endfor %}],
+            datasets: [{
+                data: [{% for p in payment_split %}{{p.revenue|floatformat:2}},{% endfor %}],
+                backgroundColor: ["#7dd3a8","#4e73df","#f6c23e","#e74a3b"],
+                borderWidth: 0, hoverOffset: 8
+            }]
+        },
+        options: { cutout: "65%", plugins: { legend: { position: "bottom", labels: { padding: 16, color: t.text, font: { weight: 600 } } } } }
+    }));
+
+    // TOP ITEMS
+    charts.push(new Chart(document.getElementById("itemChart"), {
+        type: "bar",
+        data: {
+            labels: [{% for i in top_revenue_items %}"{{i.item__name}}",{% endfor %}],
+            datasets: [{
+                data: [{% for i in top_revenue_items %}{{i.revenue|floatformat:2}},{% endfor %}],
+                backgroundColor: "#f6c23e", borderRadius: 8, borderSkipped: false
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: t.grid }, ticks: { color: t.text } },
+                y: { grid: { display: false }, ticks: { color: t.text, font: { weight: 600 } } }
+            }
+        }
+    }));
 }
 
-function buildCharts(){
+buildCharts();
 
-    destroyCharts()
-
-    const theme = getThemeColors()
-
-    Chart.defaults.color = theme.text
-    Chart.defaults.borderColor = theme.grid
-    Chart.defaults.font.family = "Inter, sans-serif"
-
-    Chart.defaults.plugins.legend.labels.color = theme.text
-
-    Chart.defaults.plugins.tooltip.backgroundColor = theme.card
-    Chart.defaults.plugins.tooltip.titleColor = theme.text
-    Chart.defaults.plugins.tooltip.bodyColor = theme.text
-    Chart.defaults.plugins.tooltip.borderColor = theme.grid
-
-
-    /* ---------------- HOURLY ---------------- */
-
-    const hourlyLabels=[{% for h in hourly_sales %}"{{h.hour}}:00",{% endfor %}]
-    const hourlyData=[{% for h in hourly_sales %}{{h.revenue|floatformat:2}},{% endfor %}]
-
-    charts.push(
-    new Chart(document.getElementById("hourlyChart"),{
-
-        type:"line",
-
-        data:{
-            labels:hourlyLabels,
-            datasets:[{
-                label:"Revenue",
-                data:hourlyData,
-                borderColor:"#4e73df",
-                backgroundColor:"rgba(78,115,223,0.18)",
-                fill:true,
-                tension:0.4
-            }]
-        },
-
-        options:{
-            scales:{
-                x:{
-                    grid:{display:false},
-                    ticks:{color:theme.text}
-                },
-                y:{
-                    grid:{color:theme.grid},
-                    ticks:{color:theme.text}
-                }
-            }
-        }
-
-    })
-    )
-
-
-    /* ---------------- CATEGORY ---------------- */
-
-    const categoryLabels=[{% for c in category_sales %}"{{c.item__category__name}}",{% endfor %}]
-    const categoryData=[{% for c in category_sales %}{{c.revenue|floatformat:2}},{% endfor %}]
-
-    charts.push(
-    new Chart(document.getElementById("categoryChart"),{
-
-        type:"bar",
-
-        data:{
-            labels:categoryLabels,
-            datasets:[{
-                label:"Revenue",
-                data:categoryData,
-                backgroundColor:"#36b9cc",
-                borderRadius:6
-            }]
-        },
-
-        options:{
-            scales:{
-                x:{
-                    grid:{display:false},
-                    ticks:{color:theme.text}
-                },
-                y:{
-                    grid:{color:theme.grid},
-                    ticks:{color:theme.text}
-                }
-            }
-        }
-
-    })
-    )
-
-
-    /* ---------------- PAYMENT ---------------- */
-
-    const paymentLabels=[{% for p in payment_split %}"{{p.payment_mode}}",{% endfor %}]
-    const paymentData=[{% for p in payment_split %}{{p.revenue|floatformat:2}},{% endfor %}]
-
-    charts.push(
-    new Chart(document.getElementById("paymentChart"),{
-
-        type:"doughnut",
-
-        data:{
-            labels:paymentLabels,
-            datasets:[{
-                data:paymentData,
-                backgroundColor:["#1cc88a","#4e73df","#f6c23e","#e74a3b"],
-                borderWidth:0
-            }]
-        },
-
-        options:{
-            plugins:{
-                legend:{
-                    labels:{color:theme.text}
-                }
-            }
-        }
-
-    })
-    )
-
-
-    /* ---------------- TOP ITEMS ---------------- */
-
-    const itemLabels=[{% for i in top_revenue_items %}"{{i.item__name}}",{% endfor %}]
-    const itemData=[{% for i in top_revenue_items %}{{i.revenue|floatformat:2}},{% endfor %}]
-
-    charts.push(
-    new Chart(document.getElementById("itemChart"),{
-
-        type:"bar",
-
-        data:{
-            labels:itemLabels,
-            datasets:[{
-                data:itemData,
-                backgroundColor:"#f6c23e",
-                borderRadius:6
-            }]
-        },
-
-        options:{
-            indexAxis:"y",
-
-            plugins:{
-                legend:{display:false}
-            },
-
-            scales:{
-                x:{
-                    grid:{color:theme.grid},
-                    ticks:{color:theme.text}
-                },
-                y:{
-                    grid:{display:false},
-                    ticks:{color:theme.text}
-                }
-            }
-        }
-
-    })
-    )
-
-}
-
-buildCharts()
-
-
-/* -------------------- */
-/* AUTO REFRESH ON THEME CHANGE */
-/* -------------------- */
-
-const observer = new MutationObserver(()=>{
-    buildCharts()
-})
-
-observer.observe(document.documentElement,{
-    attributes:true,
-    attributeFilter:["data-theme","class"]
-})
-
+const observer = new MutationObserver(() => { buildCharts(); });
+observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
 </script>
-
 {% endblock %}

@@ -26,7 +26,9 @@ def print_recipe(request, recipe_id):
 
 @staff_required
 def order_history_view(request, order_id):
-    order = get_object_or_404(Order.objects.select_related("bill"), id=order_id)
+    order = get_object_or_404(
+        Order.objects.select_related("bill", "bill__customer"), id=order_id
+    )
     bill = order.bill
 
     kot_orders = (

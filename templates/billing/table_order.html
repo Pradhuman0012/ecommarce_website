@@ -184,9 +184,6 @@
 }
 
 .clear-cart-btn {
-    position: absolute;
-    right: 20px;
-    top: 20px;
     background: rgba(248, 113, 113, 0.1);
     color: #f87171;
     border: 1px solid #f87171;
@@ -208,6 +205,30 @@
     cursor: not-allowed;
     opacity: 0.6;
 }
+
+.suggestion-box {
+    position: absolute;
+    z-index: 999;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: #262626;
+    border: 1px solid #444;
+    border-radius: 12px;
+    margin-top: 4px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.suggestion-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: 0.2s;
+}
+
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: #333; }
+.suggestion-item .fw-bold { color: #89ca9e; }
 {% endblock %}
 
 {% block body %}
@@ -298,10 +319,14 @@
         </div>
 
         <div class="side-order-panel" id="sidePanel">
-            <div class="side-header">
-                <h5 class="fw-bold mb-0 text-white">Table <span id="summaryTable"></span></h5>
-                <small class="text-muted">Order Tracking</small>
-                <button class="clear-cart-btn" onclick="clearFullOrder()">CLEAR</button>
+            <div class="side-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-0 text-white">Table <span id="summaryTable"></span></h5>
+                    <small class="text-muted">Order Tracking</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <button id="cancelOrderBtn" class="clear-cart-btn" style="display:none;" onclick="cancelActiveOrder()">CANCEL ORDER</button>
+                </div>
             </div>
             <div class="side-body" id="summaryList"></div>
             <div class="side-footer">
@@ -346,13 +371,15 @@
             <div class="modal-body p-4">
                 <div class="row">
                     <div class="col-md-6 border-end" style="border-color: #444 !important;">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold small text-muted">Customer Name</label>
-                            <input type="text" id="mCustName" class="form-control checkout-input" placeholder="Guest Name">
-                        </div>
-                        <div class="mb-4">
+                        <div class="mb-4" style="position:relative;">
                             <label class="form-label fw-bold small text-muted">Mobile Number</label>
-                            <input type="tel" id="mCustPhone" class="form-control checkout-input" placeholder="Optional">
+                            <input type="tel" id="mCustPhone" class="form-control checkout-input" placeholder="10 Digits" autocomplete="off" oninput="searchCustomer(this.value, 'phone')">
+                            <div id="phoneSuggestions" class="suggestion-box" style="display:none;"></div>
+                        </div>
+                        <div class="mb-4" style="position:relative;">
+                            <label class="form-label fw-bold small text-muted">Customer Name</label>
+                            <input type="text" id="mCustName" class="form-control checkout-input" placeholder="Guest Name" autocomplete="off" oninput="searchCustomer(this.value, 'name')">
+                            <div id="nameSuggestions" class="suggestion-box" style="display:none;"></div>
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-muted">Discount %</label>
@@ -370,7 +397,7 @@
 
                     <div class="col-md-6 ps-md-4">
                         <div id="cashCalcBox" class="p-3 mb-3 rounded-4" style="display:none; background:#262626; border: 1px solid #444;">
-                            <div class="row g-2">
+                            <div class="row g-2 mb-2">
                                 <div class="col-6">
                                     <label class="small fw-bold text-muted">Cash Received</label>
                                     <input type="number" id="cashIn" class="form-control bg-dark text-white border-0" placeholder="0" oninput="runCashCalc()">
@@ -380,6 +407,7 @@
                                     <input type="text" id="cashOut" class="form-control bg-dark fw-bold text-success border-0" readonly value="₹ 0">
                                 </div>
                             </div>
+                            <div id="cashSuggestions" class="d-flex flex-wrap gap-2"></div>
                         </div>
 
                         <div id="splitPayBox" class="p-3 mb-3 rounded-4" style="display:none; background:#262626; border: 1px solid #444;">
@@ -393,6 +421,7 @@
                                     <input type="number" id="splitOnline" class="form-control bg-dark text-white border-0" placeholder="0" readonly>
                                 </div>
                             </div>
+                            <div id="splitCashSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
                         </div>
 
                         <div class="total-box">
@@ -421,6 +450,43 @@
 <script>
 let cart = {};
 let tableServedItems = [];
+
+function searchCustomer(query, type) {
+    const suggestionBox = type === 'phone' ? $('#phoneSuggestions') : $('#nameSuggestions');
+    if (query.length < 3) {
+        suggestionBox.hide();
+        return;
+    }
+
+    $.get("{% url 'administration:customer_search' %}?q=" + query, function(data) {
+        if (data.status === 'success' && data.customers.length > 0) {
+            let html = '';
+            data.customers.forEach(c => {
+                html += `<div class="suggestion-item" onclick="selectCustomer('${c.name}', '${c.phone}')">
+                            <div class="fw-bold">${c.name}</div>
+                            <small class="text-muted">${c.phone}</small>
+                         </div>`;
+            });
+            suggestionBox.html(html).show();
+        } else {
+            suggestionBox.hide();
+        }
+    });
+}
+
+function selectCustomer(name, phone) {
+    $('#mCustName').val(name);
+    $('#mCustPhone').val(phone);
+    $('.suggestion-box').hide();
+}
+
+// Close suggestions on click outside
+$(document).on('click mousedown', function(e) {
+    if (!$(e.target).closest('.suggestion-box, #mCustPhone, #mCustName').length) {
+        $('.suggestion-box').hide();
+    }
+});
+
 
 // Search only triggers once a table is selected and user is on Category/Item screens
 // NEW: Fixed Focus Transfer Logic
@@ -454,26 +520,7 @@ function universalItemSearch(query) {
     }
 }
 
-// 2. Clear Order Function (Jiski Error aa rahi thi)
-function clearFullOrder() {
-    if(confirm("Are you sure you want to clear current selections?")) {
-        cart = {};
-        tableServedItems = [];
 
-        // UI Reset: Saare Quantity controls ko wapas original button mein badlo
-        $('.qty-wrapper-pill').each(function() {
-            const $parent = $(this).closest('.p-pill');
-            const originalLabel = $parent.data('label');
-            $parent.addClass('bg-soft border').html(originalLabel).css({'background':'', 'border':'', 'padding':''});
-        });
-
-        // Instructions/Notes chhupao
-        $('.notes-input-wrapper, .add-note-btn').hide();
-
-        renderSummary();
-        showScreen('tableDashboard'); // Wapas dashboard par le jao
-    }
-}
 
 function filterMenu(query) {
     query = query.toLowerCase();
@@ -585,6 +632,7 @@ function renderSummary() {
 
     if(tableServedItems.length > 0) {
         $('#billBtn').prop('disabled', false);
+        $('#cancelOrderBtn').show();
         html += `<div class="fw-bold mb-2 text-muted small uppercase">SERVED ITEMS</div>`;
         tableServedItems.forEach(i => {
             let noteHtml = i.notes ? `<div class="small text-danger" style="font-size: 11px;">Note: ${i.notes}</div>` : '';
@@ -599,14 +647,22 @@ function renderSummary() {
         });
     } else {
         $('#billBtn').prop('disabled', true);
+        $('#cancelOrderBtn').hide();
     }
 
     if(Object.keys(cart).length > 0) {
         html += `<div class="fw-bold mb-2 mt-3 text-muted small uppercase">NEW ITEMS</div>`;
         Object.entries(cart).forEach(([key, item]) => {
             html += `<div class="new-item-card shadow-sm">
-                        <div class="d-flex justify-content-between text-white"><strong>${item.qty}x ${item.name}</strong><span>₹${item.price * item.qty}</span></div>
-                        <div class="small text-muted">${item.size}${item.notes ? ' | ' + item.notes : ''}</div>
+                        <div class="d-flex justify-content-between text-white align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="btn p-0 m-0 text-white d-flex align-items-center justify-content-center" style="width:22px;height:22px;border-radius:4px;background:var(--accent);font-weight:bold;line-height:1;" onclick="event.stopPropagation(); changeQty('${item.id}', '${item.size}', -1)">-</button>
+                                <strong>${item.qty}x ${item.name}</strong>
+                                <button class="btn p-0 m-0 text-white d-flex align-items-center justify-content-center" style="width:22px;height:22px;border-radius:4px;background:var(--accent);font-weight:bold;line-height:1;" onclick="event.stopPropagation(); changeQty('${item.id}', '${item.size}', 1)">+</button>
+                            </div>
+                            <span>₹${item.price * item.qty}</span>
+                        </div>
+                        <div class="small text-muted mt-1">${item.size}${item.notes ? ' | ' + item.notes : ''}</div>
                      </div>`;
             subtotal += (item.price * item.qty);
         });
@@ -623,11 +679,90 @@ function renderSummary() {
     $('#summaryList').html(html || '<div class="text-center mt-5 text-muted">No items</div>');
 }
 
+
+
+// ═══════════════ CASH NOTE SUGGESTIONS ═══════════════
+function showCashSuggestions() {
+    const total = parseFloat($('#modalGrandTotal').text()) || 0;
+    if (total <= 0) return;
+    const mode = $('#mPayMode').val();
+    let suggestions = new Set();
+
+    if (mode === 'SPLIT') {
+        // Suggestions should be major round numbers LESS than total for SPLIT
+        const flowNotes = [2000, 1000, 500, 200, 100, 50];
+        flowNotes.forEach(n => {
+            if (n < total) suggestions.add(n);
+        });
+
+        // Add nearest round 100s below total
+        let round100 = Math.floor(total / 100) * 100;
+        for (let i = 0; i < 5; i++) {
+            let val = round100 - (i * 100);
+            if (val > 0 && val < total) suggestions.add(val);
+        }
+
+        // Add nearest round 50 below total
+        let round50 = Math.floor(total / 50) * 50;
+        if (round50 > 0 && round50 < total) suggestions.add(round50);
+
+        const sorted = [...suggestions].sort((a, b) => b - a); // Highest first for SPLIT
+        const finalSuggestions = sorted.slice(0, 6);
+        const html = finalSuggestions.map(amt =>
+            `<button type="button" onclick="setCashReceived(${amt})" style="background:#333;border:1px solid #555;color:#fff;padding:6px 14px;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;transition:0.2s;">₹${amt}</button>`
+        ).join('');
+        $('#cashSuggestions, #splitCashSuggestions').html(html);
+
+    } else {
+        // Standard logic for CASH (>= total)
+        const notes = [10, 20, 50, 100, 200, 500, 2000];
+        suggestions.add(total);
+        const r10 = Math.ceil(total / 10) * 10;
+        if (r10 !== total) suggestions.add(r10);
+        notes.forEach(n => {
+            const rounded = Math.ceil(total / n) * n;
+            if (rounded >= total && rounded <= total + 500) suggestions.add(rounded);
+        });
+        [50, 100, 200, 500, 1000, 2000].forEach(n => {
+            if (n >= total) suggestions.add(n);
+        });
+
+        const sorted = [...suggestions].sort((a, b) => a - b); // Lowest first for CASH
+        const finalSuggestions = sorted.slice(0, 6);
+        const html = finalSuggestions.map(amt =>
+            `<button type="button" onclick="setCashReceived(${amt})" style="background:#333;border:1px solid #555;color:#fff;padding:6px 14px;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;transition:0.2s;">₹${amt}</button>`
+        ).join('');
+        $('#cashSuggestions, #splitCashSuggestions').html(html);
+    }
+}
+
+function setCashReceived(amt) {
+    const mode = $('#mPayMode').val();
+    if (mode === 'SPLIT') {
+        $('#splitCash').val(amt);
+        validateSplit();
+        // highlight selected in split box
+        $('#splitCashSuggestions button').css({'background':'#333','border-color':'#555'});
+        $(`#splitCashSuggestions button`).filter(function() { return $(this).text() === '₹' + amt; })
+            .css({'background':'var(--accent)','border-color':'var(--accent)'});
+    } else {
+        $('#cashIn').val(amt);
+        runCashCalc();
+        // highlight selected in cash box
+        $('#cashSuggestions button').css({'background':'#333','border-color':'#555'});
+        $(`#cashSuggestions button`).filter(function() { return $(this).text() === '₹' + amt; })
+            .css({'background':'var(--accent)','border-color':'var(--accent)'});
+    }
+}
+
 function togglePaymentUI() {
     const mode = $('#mPayMode').val();
     $('#cashCalcBox').toggle(mode === 'CASH');
     $('#splitPayBox').toggle(mode === 'SPLIT');
-    if (mode === 'SPLIT' || mode === 'CASH') runRecalc();
+    if (mode === 'SPLIT' || mode === 'CASH') {
+        runRecalc();
+        showCashSuggestions();
+    }
 }
 
 function runCashCalc() {
@@ -659,6 +794,7 @@ function runRecalc() {
     $('#modalCGST, #modalSGST').text((taxableSub * 0.025).toFixed(2));
     $('#modalGrandTotal').text(finalTotal);
     runCashCalc();
+    if ($('#mPayMode').val() === 'CASH') showCashSuggestions();
 }
 
 function submitPOS(type) {
@@ -677,6 +813,11 @@ function submitPOS(type) {
 }
 
 function finalizeBill() {
+    const phone = $('#mCustPhone').val().trim();
+    if (phone && (phone.length < 10)) {
+        alert("Mobile number must be at least 10 digits! (Or leave it empty)");
+        return;
+    }
     const total = parseFloat($('#modalGrandTotal').text());
     const mode = $('#mPayMode').val();
     let cashAmt = 0, onlineAmt = 0;
@@ -692,6 +833,13 @@ function finalizeBill() {
     $('#fPayload').val(JSON.stringify(cart));
     $('#fAction').val('BILL');
     $('#posActionForm').submit();
+}
+
+function cancelActiveOrder() {
+    if(confirm("Are you sure you want to completely cancel this active order? This will remove all items and free the table.")) {
+        $('#fAction').val('CANCEL');
+        $('#posActionForm').submit();
+    }
 }
 
 function toggleNote(id) { $(`#notes-wrapper-${id}`).toggle(); $(`#note-trigger-${id}`).toggle(); }

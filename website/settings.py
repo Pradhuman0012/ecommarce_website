@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "dashboard",
     "orders.apps.OrdersConfig",
     "cms",
+    "administration",
 ]
 
 MIDDLEWARE = [

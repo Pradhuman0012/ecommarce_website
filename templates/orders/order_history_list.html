@@ -2,48 +2,95 @@
 {% block title %}Order History{% endblock %}
 
 {% block styleblock %}
-.stats-card { background: var(--bg-card); border-left: 4px solid var(--accent); }
-.order-id { color: var(--accent); font-family: monospace; }
-.theme-table tr:hover { background: var(--bg-soft) !important; }
+.oh-header { margin-bottom: 24px; }
+.oh-header h3 { font-weight: 800; color: var(--text-main); }
+
+.search-box {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 50px;
+    padding: 10px 20px; display: flex; align-items: center; gap: 10px; max-width: 360px;
+}
+.search-box input {
+    background: transparent; border: none; outline: none; color: var(--text-main);
+    font-size: 14px; font-weight: 500; width: 100%;
+}
+.search-box input::placeholder { color: var(--text-muted); }
+
+.order-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 18px;
+    padding: 18px 22px; margin-bottom: 12px; transition: 0.25s;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    cursor: pointer; text-decoration: none; color: var(--text-main);
+}
+.order-card:hover {
+    transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    border-color: var(--accent); color: var(--text-main);
+}
+.order-id-badge {
+    background: var(--bg-soft); border-radius: 10px; padding: 8px 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 800; font-size: 13px;
+    color: var(--accent); min-width: 70px; text-align: center;
+}
+.order-amount { font-size: 1.2rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
+.badge-cash { background: rgba(22,163,74,0.12); color: #22c55e; font-weight: 700; border-radius: 20px; padding: 5px 12px; font-size: 11px; }
+.badge-upi { background: rgba(99,102,241,0.12); color: #6366f1; font-weight: 700; border-radius: 20px; padding: 5px 12px; font-size: 11px; }
+.badge-split { background: rgba(234,179,8,0.12); color: #eab308; font-weight: 700; border-radius: 20px; padding: 5px 12px; font-size: 11px; }
+
+.empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
 {% endblock %}
 
 {% block body %}
-<div class="container-fluid px-4 py-4">
+<div class="container-fluid px-4 py-3">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold mb-0">Order History</h3>
-    <input type="text" id="searchInput" class="form-control w-25" placeholder="Search orders...">
-  </div>
-
-  <div class="card shadow-sm border-0">
-    <div class="table-responsive">
-      <table class="table theme-table align-middle mb-0" id="orderTable">
-        <thead>
-          <tr>
-            <th class="ps-4">ID & Bill</th>
-            <th>Customer</th>
-            <th class="text-center">Mode</th>
-            <th class="text-end">Total</th>
-            <th>Created</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for order in orders %}
-          <tr>
-            <td class="ps-4"><span class="order-id fw-bold">#{{ order.id }}</span></td>
-            <td><div class="fw-bold">{{ order.customer_name }}</div></td>
-            <td class="text-center"><span class="badge bg-soft-primary text-primary border">{{ order.bill.payment_mode }}</span></td>
-            <td class="text-end fw-bold" data-amount="{{ order.bill.total_amount|floatformat:2 }}">₹ {{ order.bill.total_amount|floatformat:2 }}</td>
-            <td>{{ order.bill.created_at|date:"d M, h:i A" }}</td>
-            <td class="text-center">
-              <a href="{% url 'orders:order_history' order.id %}" class="btn btn-sm btn-outline-secondary">View</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="oh-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h3 class="mb-1">📋 Order History</h3>
+            <span class="text-muted small">All completed orders</span>
+        </div>
+        <div class="search-box">
+            <span>🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by name, bill number..." oninput="filterOrders(this.value)">
+        </div>
     </div>
-  </div>
+
+    <div id="orderList">
+        {% for order in orders %}
+        <a href="{% url 'orders:order_history' order.id %}" class="order-card" data-search="{{ order.customer_name|lower }} {{ order.bill.bill_number|lower }} {{ order.id }}">
+            <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                <div class="order-id-badge">#{{ order.id }}</div>
+                <div style="min-width:0;">
+                    <div class="fw-bold text-truncate">{{ order.customer_name|default:"Guest" }}</div>
+                    <div class="small text-muted">{{ order.bill.bill_number }} • {{ order.bill.created_at|date:"d M, h:i A" }}</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="{% if order.bill.payment_mode == 'CASH' %}badge-cash{% elif order.bill.payment_mode == 'UPI' %}badge-upi{% else %}badge-split{% endif %}">{{ order.bill.payment_mode }}</span>
+                <div class="order-amount">₹{{ order.bill.total_amount|floatformat:0 }}</div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="fw-bold">No orders found</div>
+            <div class="small">Completed orders will appear here</div>
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterOrders(query) {
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('.order-card').forEach(card => {
+        const searchData = card.getAttribute('data-search');
+        card.style.display = (!q || searchData.includes(q)) ? '' : 'none';
+    });
+}
+</script>
 {% endblock %}

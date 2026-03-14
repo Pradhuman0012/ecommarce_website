@@ -32,11 +32,19 @@ class Bill(models.Model):
     class PaymentMode(models.TextChoices):
         CASH = "CASH", "Cash"
         UPI = "UPI", "UPI"
+        SPLIT = "SPLIT", "Split"
 
     bill_number = models.CharField(max_length=20, unique=True, editable=False)
 
     customer_name = models.CharField(max_length=100)
     customer_phone = models.CharField(max_length=15)
+    customer = models.ForeignKey(
+        "administration.Customer",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bills",
+    )
 
     # PAYMENT (AUDIT)
     payment_mode = models.CharField(

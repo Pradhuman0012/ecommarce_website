@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Administration | Expenses{% endblock %}
+
+{% block styleblock %}
+/* ═══ SHARED ADMIN STYLES ═══ */
+.admin-page-header h3 { font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+.admin-page-header .subtitle { font-size: 13px; color: var(--text-muted); }
+
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-nav a {
+    background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-muted);
+    padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 12px;
+    text-decoration: none; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.admin-nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.admin-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 16px;
+    padding: 20px; transition: 0.25s;
+}
+
+.section-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px;
+}
+
+.admin-input {
+    background: var(--bg-soft); color: var(--text-main); border: 1px solid var(--border-soft);
+    border-radius: 10px; height: 42px; font-size: 13px; font-weight: 500;
+}
+.admin-input:focus { background: var(--bg-soft); color: var(--text-main); border-color: var(--accent); box-shadow: none; }
+.admin-btn {
+    background: var(--accent); color: white; border: none; border-radius: 10px;
+    font-weight: 700; font-size: 12px; height: 42px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-btn:hover { opacity: 0.9; color: white; }
+
+/* ═══ CATEGORY PILLS ═══ */
+.cat-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.cat-pill {
+    padding: 7px 16px; border-radius: 50px; font-weight: 700; font-size: 11px;
+    text-decoration: none; border: 1px solid var(--border-soft); color: var(--text-muted);
+    background: var(--bg-card); transition: 0.2s;
+}
+.cat-pill:hover { border-color: var(--accent); color: var(--accent); }
+.cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══ EXPENSE ROW ═══ */
+.expense-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border-soft);
+}
+.expense-row:last-child { border-bottom: none; }
+.expense-cat-badge {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 4px 10px; border-radius: 6px; background: var(--bg-soft); color: var(--text-muted);
+}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color:var(--text-main);">🛡️ Administration</h3>
+            <span class="text-muted" style="font-size:13px;">Expense Tracking & Categories</span>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold text-white small">₹{{ monthly_total|floatformat:0 }}</div>
+            <div class="text-muted" style="font-size:11px;">Monthly Spend</div>
+        </div>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}">Dashboard</a>
+        <a href="{% url 'administration:cash_counter' %}">Cash Counter</a>
+        <a href="{% url 'administration:staff_list' %}">Staff</a>
+        <a href="{% url 'administration:expense_list' %}" class="active">Expenses</a>
+        <a href="{% url 'administration:customer_list' %}">Customers</a>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT: ADD FORM -->
+        <div class="col-md-4">
+            <div class="section-label">➕ Add Expense</div>
+            <div class="admin-card">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+                    <div class="mb-3"><input type="date" name="date" class="form-control admin-input" required></div>
+                    <div class="mb-3">
+                        <select name="category" class="form-select admin-input">
+                            {% for val, display in categories %}<option value="{{ val }}">{{ display }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3"><input type="number" name="amount" class="form-control admin-input" placeholder="₹ Amount" required step="1"></div>
+                    <div class="mb-3"><input type="text" name="description" class="form-control admin-input" placeholder="Description..."></div>
+                    <button type="submit" class="btn admin-btn w-100">ADD EXPENSE</button>
+                </form>
+            </div>
+
+            <!-- MONTHLY TOTAL -->
+            <div class="admin-card mt-3 text-center">
+                <div class="section-label mb-1">Monthly Total</div>
+                <div style="font-size:1.8rem;font-weight:900;color:#f87171;">₹{{ monthly_total|floatformat:0 }}</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: EXPENSE LIST -->
+        <div class="col-md-8">
+            <div class="section-label">📋 Expense List</div>
+
+            <!-- CATEGORY FILTER -->
+            <div class="cat-pills">
+                <a href="{% url 'administration:expense_list' %}" class="cat-pill {% if not selected_category %}active{% endif %}">All</a>
+                {% for val, display in categories %}
+                <a href="?category={{ val }}" class="cat-pill {% if selected_category == val %}active{% endif %}">{{ display }}</a>
+                {% endfor %}
+            </div>
+
+            <div class="admin-card">
+                {% for e in expenses %}
+                <div class="expense-row">
+                    <div style="flex:1;min-width:0;">
+                        <div class="fw-bold" style="font-size:14px;color:var(--text-main);">{{ e.description|default:e.get_category_display }}</div>
+                        <div class="d-flex gap-2 align-items-center mt-1">
+                            <span class="expense-cat-badge">{{ e.get_category_display }}</span>
+                            <span class="small text-muted">{{ e.date|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold" style="color:#f87171;font-size:1.05rem;">₹{{ e.amount|floatformat:0 }}</span>
+                        <form method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="expense_id" value="{{ e.id }}">
+                            <button type="submit" class="btn btn-sm" onclick="return confirm('Delete?')" style="padding:3px 8px;font-size:11px;color:var(--text-muted);border:1px solid var(--border-soft);border-radius:8px;">✕</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:13px;">No expenses recorded</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

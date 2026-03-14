@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}{{ customer.name }} | Customer{% endblock %}
+
+{% block styleblock %}
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-nav a {
+    background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-muted);
+    padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 12px;
+    text-decoration: none; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.admin-nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.back-btn {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 50px;
+    padding: 8px 20px; text-decoration: none; color: var(--text-main); font-weight: 700;
+    font-size: 13px; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.profile-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 20px; padding: 28px; margin-bottom: 24px; position: relative; overflow: hidden;
+}
+.profile-hero::before {
+    content: ''; position: absolute; top: -40%; right: -10%;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%); border-radius: 50%;
+}
+.profile-avatar {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
+}
+.profile-name { font-size: 1.5rem; font-weight: 800; color: white; }
+.profile-phone { font-size: 14px; color: rgba(255,255,255,0.5); }
+.hero-stat { text-align: center; }
+.hero-stat .hs-val { font-size: 1.6rem; font-weight: 800; color: white; }
+.hero-stat .hs-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+
+.info-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 16px; padding: 22px;
+}
+.bill-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border-soft);
+}
+.bill-row:last-child { border-bottom: none; }
+
+.badge-cash { background: rgba(22,163,74,0.12); color: #22c55e; font-weight: 700; border-radius: 20px; padding: 4px 12px; font-size: 11px; }
+.badge-upi { background: rgba(99,102,241,0.12); color: #6366f1; font-weight: 700; border-radius: 20px; padding: 4px 12px; font-size: 11px; }
+.badge-split { background: rgba(234,179,8,0.12); color: #eab308; font-weight: 700; border-radius: 20px; padding: 4px 12px; font-size: 11px; }
+
+.admin-input {
+    background: var(--bg-soft); color: var(--text-main); border: 1px solid var(--border-soft);
+    border-radius: 10px; font-size: 13px; font-weight: 500;
+}
+.admin-input:focus { background: var(--bg-soft); color: var(--text-main); border-color: var(--accent); box-shadow: none; }
+.admin-btn {
+    background: var(--accent); color: white; border: none; border-radius: 10px;
+    font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4 py-3">
+    <a href="{% url 'administration:customer_list' %}" class="back-btn mb-3 d-inline-flex">← Customers</a>
+
+    <!-- PROFILE HERO -->
+    <div class="profile-hero">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="profile-avatar">👤</div>
+                    <div>
+                        <div class="profile-name">{{ customer.name }}</div>
+                        <div class="profile-phone">📱 {{ customer.phone }}</div>
+                        {% if customer.created_at %}<div class="profile-phone">Customer since {{ customer.created_at|date:"d M Y" }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row g-3 mt-2 mt-md-0">
+                    <div class="col-4">
+                        <div class="hero-stat">
+                            <div class="hs-val">{{ customer.total_visits }}</div>
+                            <div class="hs-lbl">Total Visits</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="hero-stat">
+                            <div class="hs-val" style="color:#22c55e;">₹{{ total_spent|floatformat:0 }}</div>
+                            <div class="hs-lbl">Total Spent</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="hero-stat">
+                            <div class="hs-val" style="color:#818cf8;">{% if customer.total_visits > 0 %}₹{{ total_spent|floatformat:0 }}{% else %}0{% endif %}</div>
+                            <div class="hs-lbl">Avg Bill</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- BILLS -->
+        <div class="col-lg-8">
+            <div class="info-card">
+                <h6 class="fw-bold mb-3" style="color:var(--text-main);">🧾 Order History ({{ bills.count }} bills)</h6>
+                {% for b in bills %}
+                <div class="bill-row">
+                    <div>
+                        <div class="fw-bold" style="font-size:14px;color:var(--text-main);">{{ b.bill_number }}</div>
+                        <div class="small text-muted">{{ b.created_at|date:"d M Y, h:i A" }}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="{% if b.payment_mode == 'CASH' %}badge-cash{% elif b.payment_mode == 'UPI' %}badge-upi{% else %}badge-split{% endif %}">{{ b.payment_mode }}</span>
+                        <span class="fw-bold" style="color:var(--accent);font-size:1.05rem;">₹{{ b.total_amount|floatformat:0 }}</span>
+                        {% with order=b.order_set.first %}
+                            {% if order %}
+                                <a href="{% url 'orders:order_history' order.id %}" class="btn btn-sm btn-outline-secondary rounded-pill" style="font-size:10px; padding:2px 10px; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4);">DETAILS</a>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:13px;">No bills yet</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="col-lg-4">
+            <div class="info-card">
+                <h6 class="fw-bold mb-3" style="color:var(--text-main);">📝 Notes</h6>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_notes">
+                    <textarea name="notes" class="form-control admin-input mb-3" rows="5" placeholder="Add notes about this customer...">{{ customer.notes }}</textarea>
+                    <button type="submit" class="btn admin-btn w-100">Save Notes</button>
+                </form>
+            </div>
+
+            <div class="info-card mt-3">
+                <h6 class="fw-bold mb-3" style="color:var(--text-main);">📊 Summary</h6>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border-soft);">
+                    <span class="text-muted" style="font-size:13px;">First Visit</span>
+                    <span class="fw-bold" style="font-size:13px;">{{ customer.created_at|date:"d M Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2" style="border-bottom:1px solid var(--border-soft);">
+                    <span class="text-muted" style="font-size:13px;">Last Visit</span>
+                    <span class="fw-bold" style="font-size:13px;">{{ customer.last_visited|date:"d M Y"|default:"—" }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <span class="text-muted" style="font-size:13px;">Favorite Payment</span>
+                    <span class="fw-bold" style="font-size:13px;">—</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

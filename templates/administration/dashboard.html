@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block title %}Administration | Dashboard{% endblock %}
+
+{% block styleblock %}
+/* ═══ ADMIN NAV ═══ */
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-nav a {
+    background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-muted);
+    padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 12px;
+    text-decoration: none; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.admin-nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* ═══ HERO ═══ */
+.dash-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 24px; padding: 32px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+}
+.dash-hero::before {
+    content: ''; position: absolute; top: -50%; right: -20%;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(246,194,62,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.hero-value { font-size: 3rem; font-weight: 900; color: #f6c23e; line-height: 1; }
+.hero-label { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1.5px; }
+.hero-stat { text-align: center; }
+.hero-stat .hs-val { font-size: 1.6rem; font-weight: 800; color: white; }
+.hero-stat .hs-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+.compare-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 4px 12px; margin-top: 8px; }
+.compare-up { background: rgba(34,197,94,0.15); color: #22c55e; }
+.compare-down { background: rgba(248,113,113,0.15); color: #f87171; }
+.compare-same { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+
+/* ═══ KPI ═══ */
+.kpi-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 18px;
+    padding: 22px; transition: 0.3s; position: relative; overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+.kpi-card .kpi-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 14px;
+}
+.kpi-card .kpi-value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+.kpi-card .kpi-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ═══ CHARTS ═══ */
+.chart-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 20px; padding: 24px; }
+.chart-card h6 { font-weight: 700; color: var(--text-main); margin-bottom: 16px; }
+canvas { max-height: 260px; }
+
+/* ═══ NET BOX ═══ */
+.net-strip {
+    border-radius: 18px; padding: 20px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* ═══ TABLE ═══ */
+.top-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 20px; padding: 24px; }
+.item-rank {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--bg-soft); display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: var(--text-muted);
+}
+.item-rank.gold { background: rgba(246,194,62,0.15); color: #f6c23e; }
+.item-rank.silver { background: rgba(200,200,200,0.15); color: #aaa; }
+.item-rank.bronze { background: rgba(205,127,50,0.15); color: #cd7f32; }
+
+/* ═══ RECENT ═══ */
+.recent-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 20px; padding: 24px; }
+.recent-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+.recent-row:last-child { border-bottom: none; }
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4 py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color:var(--text-main);">🛡️ Administration</h3>
+            <span class="text-muted" style="font-size:13px;">Management & Insights</span>
+        </div>
+        <form method="get" class="d-flex align-items-center gap-2">
+            <input type="date" name="date" value="{{ date_input }}" class="form-control" style="background:var(--bg-card); border:1px solid var(--border-soft); color:var(--text-main); border-radius:10px; font-size:13px; font-weight:600; padding:8px 15px;" onchange="this.form.submit()">
+        </form>
+    </div>
+
+    <!-- NAV -->
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}" class="active">Dashboard</a>
+        <a href="{% url 'administration:cash_counter' %}">Cash Counter</a>
+        <a href="{% url 'administration:staff_list' %}">Staff</a>
+        <a href="{% url 'administration:expense_list' %}">Expenses</a>
+        <a href="{% url 'administration:customer_list' %}">Customers</a>
+    </div>
+
+    <!-- HERO -->
+    <div class="dash-hero">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <div class="hero-label mb-2">Today's Revenue</div>
+                <div class="hero-value">₹{{ today_revenue|floatformat:0 }}</div>
+                {% if today_revenue > yest_revenue %}
+                <div class="compare-badge compare-up">↑ Up from yesterday (₹{{ yest_revenue|floatformat:0 }})</div>
+                {% elif today_revenue < yest_revenue %}
+                <div class="compare-badge compare-down">↓ Down from yesterday (₹{{ yest_revenue|floatformat:0 }})</div>
+                {% else %}
+                <div class="compare-badge compare-same">= Same as yesterday</div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="row g-3 mt-3 mt-md-0">
+                    <div class="col-3">
+                        <div class="hero-stat">
+                            <div class="hs-val">{{ today_bill_count }}</div>
+                            <div class="hs-lbl">Bills Today</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="hero-stat">
+                            <div class="hs-val" style="color:#22c55e;">₹{{ today_cash|floatformat:0 }}</div>
+                            <div class="hs-lbl">Cash</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="hero-stat">
+                            <div class="hs-val" style="color:#818cf8;">₹{{ today_upi|floatformat:0 }}</div>
+                            <div class="hs-lbl">UPI</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="hero-stat">
+                            <div class="hs-val" style="color:#f6c23e;">₹{{ expected_cash|floatformat:0 }}</div>
+                            <div class="hs-lbl">In Counter</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(22,163,74,0.12);">📈</div>
+                <div class="kpi-value" style="color:#22c55e;">₹{{ monthly_revenue|floatformat:0 }}</div>
+                <div class="kpi-label">Monthly Income</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.12);">💸</div>
+                <div class="kpi-value" style="color:#ef4444;">₹{{ monthly_expenses|floatformat:0 }}</div>
+                <div class="kpi-label">Monthly Expenses</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background:rgba(96,165,250,0.12);">👥</div>
+                <div class="kpi-value" style="color:#60a5fa;">₹{{ total_salary|floatformat:0 }}</div>
+                <div class="kpi-label">Staff Salary ({{ active_staff }})</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="kpi-card" style="border-color:{% if net >= 0 %}rgba(34,197,94,0.3){% else %}rgba(248,113,113,0.3){% endif %};">
+                <div class="kpi-icon" style="background:{% if net >= 0 %}rgba(34,197,94,0.12){% else %}rgba(248,113,113,0.12){% endif %};">{% if net >= 0 %}📊{% else %}⚠️{% endif %}</div>
+                <div class="kpi-value" style="color:{% if net >= 0 %}#22c55e{% else %}#f87171{% endif %};">{% if net >= 0 %}+{% endif %}₹{{ net|floatformat:0 }}</div>
+                <div class="kpi-label">Net Profit/Loss</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <h6>📈 Last 7 Days Revenue</h6>
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-card" style="height:100%;">
+                <h6>💸 Expense Breakdown</h6>
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="row g-4">
+        <!-- TOP ITEMS -->
+        <div class="col-lg-6">
+            <div class="top-card">
+                <h6 class="fw-bold mb-3" style="color:var(--text-main);">🔥 Top Selling Items Today</h6>
+                {% if top_items %}
+                <table class="table theme-table mb-0">
+                    <thead><tr><th>#</th><th>Item</th><th class="text-end">Qty Sold</th></tr></thead>
+                    <tbody>
+                    {% for i in top_items %}
+                    <tr>
+                        <td><span class="item-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">{{ forloop.counter }}</span></td>
+                        <td class="fw-bold">{{ i.item__name }}</td>
+                        <td class="text-end fw-bold" style="color:var(--accent);">{{ i.qty }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center text-muted py-4" style="font-size:13px;">No sales today yet</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RECENT EXPENSES -->
+        <div class="col-lg-6">
+            <div class="recent-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0" style="color:var(--text-main);">💸 Recent Expenses</h6>
+                    <a href="{% url 'administration:expense_list' %}" style="color:var(--accent);text-decoration:none;font-weight:700;font-size:12px;">View All →</a>
+                </div>
+                {% for e in recent_expenses %}
+                <div class="recent-row">
+                    <div>
+                        <div class="fw-bold" style="font-size:14px;color:var(--text-main);">{{ e.description|default:e.get_category_display }}</div>
+                        <div class="small text-muted">{{ e.date|date:"d M" }} • {{ e.get_category_display }}</div>
+                    </div>
+                    <div class="fw-bold" style="color:#f87171;">₹{{ e.amount|floatformat:0 }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center text-muted py-4" style="font-size:13px;">No expenses yet</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let adminCharts = [];
+
+function getTheme() {
+    const s = getComputedStyle(document.documentElement);
+    return {
+        text: s.getPropertyValue("--text-main").trim() || "#374151",
+        grid: s.getPropertyValue("--border-soft").trim() || "rgba(0,0,0,0.08)",
+    };
+}
+
+function buildAdminCharts() {
+    adminCharts.forEach(c => c.destroy());
+    adminCharts = [];
+    const t = getTheme();
+    Chart.defaults.color = t.text;
+    Chart.defaults.borderColor = t.grid;
+    Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+
+    // REVENUE CHART
+    adminCharts.push(new Chart(document.getElementById("revenueChart"), {
+        type: "line",
+        data: {
+            labels: [{% for d in daily_data %}"{{ d.day|date:'D d' }}",{% endfor %}],
+            datasets: [{
+                label: "Revenue",
+                data: [{% for d in daily_data %}{{ d.revenue }},{% endfor %}],
+                borderColor: "#f6c23e",
+                backgroundColor: "rgba(246,194,62,0.1)",
+                fill: true, tension: 0.4, borderWidth: 3,
+                pointRadius: 5, pointBackgroundColor: "#f6c23e",
+                pointBorderColor: "#fff", pointBorderWidth: 2
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: t.text, font: { weight: 600 } } },
+                y: { grid: { color: t.grid }, ticks: { color: t.text, callback: v => '₹' + v } }
+            }
+        }
+    }));
+
+    // EXPENSE CHART
+    const catLabels = [{% for c in cat_data %}"{{ c.category }}",{% endfor %}];
+    const catValues = [{% for c in cat_data %}{{ c.total }},{% endfor %}];
+
+    if (catLabels.length > 0) {
+        adminCharts.push(new Chart(document.getElementById("expenseChart"), {
+            type: "doughnut",
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catValues,
+                    backgroundColor: ["#f87171","#fbbf24","#34d399","#60a5fa","#a78bfa","#f472b6"],
+                    borderWidth: 0, hoverOffset: 6
+                }]
+            },
+            options: {
+                cutout: "65%",
+                plugins: { legend: { position: "bottom", labels: { padding: 12, color: t.text, font: { size: 11, weight: 600 } } } }
+            }
+        }));
+    }
+}
+
+buildAdminCharts();
+
+const obs = new MutationObserver(() => buildAdminCharts());
+obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+</script>
+{% endblock %}

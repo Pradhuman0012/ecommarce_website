@@ -31,4 +31,5 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("orders/", include("orders.urls")),
     path("cms/", include("cms.urls")),
+    path("administration/", include("administration.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

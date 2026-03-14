@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Administration | Cash Counter{% endblock %}
+
+{% block styleblock %}
+/* ═══ SHARED ADMIN STYLES ═══ */
+.admin-page-header h3 { font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+.admin-page-header .subtitle { font-size: 13px; color: var(--text-muted); }
+
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.admin-nav a {
+    background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-muted);
+    padding: 9px 20px; border-radius: 50px; font-weight: 700; font-size: 12px;
+    text-decoration: none; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-nav a:hover { border-color: var(--accent); color: var(--accent); }
+.admin-nav a.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.admin-card {
+    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 16px;
+    padding: 20px; transition: 0.25s;
+}
+
+.section-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px;
+}
+
+/* ═══ CASH HERO ═══ */
+.cash-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    border-radius: 16px; padding: 28px; position: relative; overflow: hidden; margin-bottom: 24px;
+}
+.cash-hero::before {
+    content: ''; position: absolute; top: -40%; right: -10%;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(246,194,62,0.1) 0%, transparent 70%); border-radius: 50%;
+}
+.cash-amount { font-size: 2.5rem; font-weight: 900; color: #f6c23e; line-height: 1; }
+.cb-row { display: flex; gap: 28px; margin-top: 16px; }
+.cb-val { font-size: 1.2rem; font-weight: 800; color: white; }
+.cb-lbl { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ═══ FORMS ═══ */
+.admin-input {
+    background: var(--bg-soft); color: var(--text-main); border: 1px solid var(--border-soft);
+    border-radius: 10px; height: 42px; font-size: 13px; font-weight: 500;
+}
+.admin-input:focus { background: var(--bg-soft); color: var(--text-main); border-color: var(--accent); box-shadow: none; }
+.admin-btn {
+    background: var(--accent); color: white; border: none; border-radius: 10px;
+    font-weight: 700; font-size: 12px; height: 42px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-btn:hover { opacity: 0.9; color: white; }
+
+.txn-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+}
+.txn-row:last-child { border-bottom: none; }
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4 py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color:var(--text-main);">🛡️ Administration</h3>
+            <span class="text-muted" style="font-size:13px;">Cash Counter & Drawer</span>
+        </div>
+        <div class="text-end">
+            <div class="fw-bold text-white small">{{ counter.date|date:"d M Y" }}</div>
+            <div class="text-muted" style="font-size:11px;">Operational Day</div>
+        </div>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{% url 'administration:dashboard' %}">Dashboard</a>
+        <a href="{% url 'administration:cash_counter' %}" class="active">Cash Counter</a>
+        <a href="{% url 'administration:staff_list' %}">Staff</a>
+        <a href="{% url 'administration:expense_list' %}">Expenses</a>
+        <a href="{% url 'administration:customer_list' %}">Customers</a>
+    </div>
+
+    <!-- CASH HERO -->
+    <div class="cash-hero">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">Expected Cash in Counter</div>
+        <div class="cash-amount">₹{{ expected_cash|floatformat:0 }}</div>
+        <div class="cb-row">
+            <div><div class="cb-val">₹{{ counter.opening_balance|floatformat:0 }}</div><div class="cb-lbl">Opening</div></div>
+            <div><div class="cb-val" style="color:#22c55e;">+₹{{ today_cash_in|floatformat:0 }}</div><div class="cb-lbl">Cash In</div></div>
+            <div><div class="cb-val" style="color:#f87171;">-₹{{ total_withdrawn|floatformat:0 }}</div><div class="cb-lbl">Cash Out</div></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT FORMS -->
+        <div class="col-md-5">
+            <div class="section-label">📝 Set Opening</div>
+            <div class="admin-card mb-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="set_opening">
+                    <div class="mb-3"><input type="number" name="opening_balance" class="form-control admin-input" placeholder="₹ Opening amount" value="{{ counter.opening_balance }}" step="1"></div>
+                    <div class="mb-3"><input type="text" name="notes" class="form-control admin-input" placeholder="Notes (optional)" value="{{ counter.notes }}"></div>
+                    <button type="submit" class="btn admin-btn w-100">SET OPENING</button>
+                </form>
+            </div>
+
+            <div class="section-label">💸 Withdraw</div>
+            <div class="admin-card">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_withdrawal">
+                    <div class="mb-3"><input type="number" name="amount" class="form-control admin-input" placeholder="₹ Amount" required step="1"></div>
+                    <div class="mb-3"><input type="text" name="reason" class="form-control admin-input" placeholder="Reason..." required></div>
+                    <button type="submit" class="btn admin-btn w-100">WITHDRAW</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT DATA -->
+        <div class="col-md-7">
+            {% if withdrawals %}
+            <div class="section-label">Today's Withdrawals</div>
+            <div class="admin-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold" style="font-size:13px;color:var(--text-main);">{{ withdrawals.count }} withdrawals</span>
+                    <span class="fw-bold" style="color:#f87171;">Total: ₹{{ total_withdrawn|floatformat:0 }}</span>
+                </div>
+                {% for txn in withdrawals %}
+                <div class="txn-row">
+                    <div>
+                        <div class="fw-bold" style="font-size:13px;color:var(--text-main);">{{ txn.reason }}</div>
+                        <div class="small text-muted">{{ txn.created_at|date:"h:i A" }}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold" style="color:#f87171;">-₹{{ txn.amount|floatformat:0 }}</span>
+                        <form method="POST" style="margin:0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_withdrawal">
+                            <input type="hidden" name="txn_id" value="{{ txn.id }}">
+                            <button type="submit" class="btn btn-sm" onclick="return confirm('Delete?')" style="padding:2px 8px;font-size:11px;color:var(--text-muted);border:1px solid var(--border-soft);border-radius:8px;">✕</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="section-label">🧾 Today's Bills</div>
+            <div class="admin-card">
+                {% if today_bills %}
+                <div class="table-responsive">
+                    <table class="table theme-table mb-0">
+                        <thead><tr><th>Bill #</th><th>Customer</th><th>Mode</th><th class="text-end">Amount</th><th>Time</th></tr></thead>
+                        <tbody>
+                        {% for bill in today_bills %}
+                        <tr>
+                            <td class="fw-bold" style="font-size:13px;">{{ bill.bill_number }}</td>
+                            <td style="font-size:13px;">{{ bill.customer_name }}</td>
+                            <td><span class="badge rounded-pill {% if bill.payment_mode == 'CASH' %}bg-success{% else %}bg-primary{% endif %}" style="font-size:10px;">{{ bill.payment_mode }}</span></td>
+                            <td class="text-end fw-bold" style="font-size:13px;">₹{{ bill.total_amount|floatformat:0 }}</td>
+                            <td class="small text-muted">{{ bill.created_at|date:"h:i A" }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4" style="font-size:13px;">No bills today yet</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

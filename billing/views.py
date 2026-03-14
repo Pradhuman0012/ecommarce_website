@@ -14,7 +14,9 @@ from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
+from administration.models import Customer
 from core.decorators import staff_required
 from home.models import Category, Item
 from orders.models import Order, OrderHistory, OrderItem, Table
@@ -347,6 +349,17 @@ def table_order_view(request):
                 table.save()
 
                 return redirect("billing:table_order")
+
+            # --- CASE 1.5: CANCEL ACTIVE ORDER ---
+            elif action_type == "CANCEL":
+                orders = Order.objects.filter(table=table, is_billed=False)
+                orders.delete()
+
+                table.is_occupied = False
+                table.save()
+
+                return redirect("billing:table_order")
+
             # --- CASE 2: FINAL BILL (Fixed Logic) ---
             elif action_type == "BILL":
                 pending_orders = table.orders.filter(is_billed=False)
@@ -358,6 +371,7 @@ def table_order_view(request):
                 payment_mode = request.POST.get("payment_mode", "UPI")
                 cust_name = request.POST.get("customer_name") or f"Table {table.number}"
                 cust_phone = request.POST.get("customer_phone")
+                cash_amount = Decimal(request.POST.get("cash_amount") or 0)
 
                 cafe = CafeConfig.objects.first()
                 bill = Bill.objects.create(
@@ -366,7 +380,23 @@ def table_order_view(request):
                     payment_mode=payment_mode,
                     gst_percentage=cafe.gst_percentage if cafe else 0,
                     discount_percent=discount_percent,
+                    cash_received=(
+                        cash_amount if payment_mode in ("CASH", "SPLIT") else None
+                    ),
                 )
+
+                # ── Customer Profile Handling (Partial) ──
+                # We'll link the bill now, but update stats AFTER items are added
+                customer = None
+                if cust_phone and len(cust_phone.strip()) >= 10:
+                    cust_phone_clean = cust_phone.strip()[-10:]
+                    customer, _ = Customer.objects.get_or_create(
+                        phone=cust_phone_clean,
+                        defaults={"name": cust_name},
+                    )
+                    bill.customer = customer
+                    bill.customer_phone = cust_phone_clean
+                    bill.save(update_fields=["customer", "customer_phone"])
 
                 subtotal = Decimal("0.00")
 
@@ -402,6 +432,22 @@ def table_order_view(request):
                     order.bill = bill
                     order.is_billed = True
                     order.save()
+
+                # ── Final Customer Stats Update ──
+                if bill.customer:
+
+                    c = bill.customer
+                    c.name = cust_name  # Refresh name if changed
+
+                    # Refreshing to ensure the model knows about the new bill linked in DB
+                    c.refresh_from_db()
+
+                    c.total_visits = c.bills.count()
+                    all_bills = list(c.bills.all())
+                    c.total_spent = sum(b.total_amount() for b in all_bills)
+
+                    c.last_visited = timezone.now()
+                    c.save()
 
                     OrderHistory.objects.create(
                         order=order,
@@ -453,10 +499,23 @@ def table_order_view(request):
                 table.save()
                 return redirect("billing:table_order")
 
+    # Past customer names for autocomplete
+    past_customers = list(
+        Bill.objects.exclude(customer_name__in=["", "Guest"])
+        .values_list("customer_name", flat=True)
+        .distinct()
+        .order_by("customer_name")[:100]
+    )
+
     return render(
         request,
         "billing/table_order.html",
-        {"categories": categories, "items": items, "tables": tables},
+        {
+            "categories": categories,
+            "items": items,
+            "tables": tables,
+            "past_customers": past_customers,
+        },
     )
 
 
